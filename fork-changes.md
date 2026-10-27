@@ -35,7 +35,7 @@ The existing resource cache compares saved remote metadata with the fetched remo
 
 ## Class compatibility changes
 
-The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The fork now contains **126 changed data entries or fields** relative to the clean upstream branch. The earlier checkpoint covered 69 distinct alias targets; the latest checkpoint adds the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
+The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The earlier accepted checkpoints contain **126 changed data entries or fields** relative to the clean upstream branch. The latest accepted four-repair batch adds one isolated native menu-image mapping and three owned style values. The earlier checkpoint covered 69 distinct alias targets; the latest checkpoint adds the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
 
 | Area | Change and verified behavior |
 | --- | --- |
@@ -195,6 +195,44 @@ Several checks prevent a returned class string from being mistaken for a correct
 
 No compatibility stylesheet rules have been added at this checkpoint; [Library/_res/0BDFDB.raw.css](Library/_res/0BDFDB.raw.css) is unchanged. No BetterDiscord core or Discord desktop code is changed by this patch. The inspected desktop client receives the current Discord frontend, so an older desktop shell does not imply frozen frontend class names.
 
+### Native menu image and three compatibility styles — accepted
+
+The final audit checked all 50 remaining aliases against the captured class-export and stylesheet indexes for stable build **652418**. The menu renderer supplies one verified native replacement: `menuimage` now targets its `imageAccessory_c1e9c4` image element. A separate internal owner with the verified lazy suffix keeps the retired `menuimagecontainer` alias unresolved. The existing native menu mappings remain intact. Three further aliases have small BDFDB-owned styling replacements; those three are not native Discord element selectors.
+
+| Alias | Mapping and behavior |
+| --- | --- |
+| `menuimage` | Uses the native menu image through `MenuImageCurrent.imageAccessory`; supports loaded and unloaded lookups without fabricating a legacy image-container hook. |
+| `colorred` | Retains `TextColor.colorStatusRed`; an owned class applies `--status-danger`. |
+| `coloryellow` | Retains `TextColor.colorStatusYellow`; an owned class applies `--status-warning`. |
+| `tooltipyellow` | Uses `BDFDB.compatTooltipYellow` for a warning surface, text and pointer. The other 14 native tooltip aliases keep their definitions and discovery. |
+
+The four appended rules in [the raw stylesheet](Library/_res/0BDFDB.raw.css) leave the previous stylesheet intact. The arrow inherits `--tooltip-pointer-bg`, so callers can still supply an explicit background, font color or pointer override, including when they explicitly pass the yellow class. No library JavaScript change is needed for these styles.
+
+Local checks pass for all 1,620 public names, all six getter forms for the three targets, 19,404 unchanged sibling outputs across the two fixture states, and the current 16-field native tooltip owner with its 14 existing aliases. The finder fixture rejects unrelated owners. These checks model the installed host's class normalization; they do not establish browser CSS results.
+
+The manual full scan at **2026-10-27 22:02:51 UTC** passed all four repairs: **50 → 46 unresolved aliases**, with no newly missing aliases, getter errors, undefined results or malformed mappings. It covered **313 groups and all 1,620 aliases** on stable frontend **652418**. The three applied-CSS checks passed in the running browser, including explicit background, font and pointer overrides; the hidden samples were removed. These checks do not invoke the tooltip constructor or certify every UI consumer. The overall class goal remains open for the other 46 aliases.
+
+<details>
+<summary>Source revision and stylesheet evidence for the three styles</summary>
+
+```text
+Source audit date: 2026-10-28 (Australia/Melbourne)
+Frontend: stable build 652418
+Version: 5c8490b77d210a433203192c6e08fb7cd45550c8
+Main: web.33a8a649a2fda558.js
+Palette CSS: 952007.87dea5a700fabeaf.css
+  sha256 9a2f27f806880de7bdf8310dd122b67dfba5017b5a61da41b1830f0434667b33
+Native menu JS: 261000.1b6532d3649c0f52.js [style factory 798819]
+  sha256 25ed48f88a65c8ba77ad2c83500aaed195ed79cf7e691357a200b2a9aa9167a1
+Native menu CSS: 261000.04eb3f5d741e2f7c.css
+  sha256 11362b7d66fa8d80f494bf0afea6ce60713fd676aabd37f701a5f67927fffc5f
+Native tooltip CSS: 348181.99d322304a4170d4.css
+  sha256 a42d2cbd97134ccf613b5e6812baceadb169fbb7bb77c177ee6735da351e7564
+The palette, menu and tooltip CSS assets are listed by the accepted live build receipt.
+```
+
+</details>
+
 ## Verification checkpoint
 
 ### Module revision targeted by the source audit
@@ -349,21 +387,22 @@ JS f1b21daced4ed09a.js [builds 652094, 652418]
 
 ### Live lookup results
 
-The latest accepted manual full scan ran at **2026-10-27 21:08:34 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
+The latest accepted manual full scan ran at **2026-10-27 22:02:51 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
 
 | Check | Result |
 | --- | ---: |
-| Groups covered | 312 |
+| Groups covered | 313 |
 | Unique aliases covered | 1,620 |
-| Aliases returning non-fallback strings | 1,570 |
-| Aliases still returning missing-class fallbacks | 50 |
+| Aliases returning non-fallback strings | 1,574 |
+| Aliases still returning missing-class fallbacks | 46 |
 | Getter errors / undefined results / malformed mappings | 0 |
-| Newly missing aliases in that batch | 0 |
-| Scan duration | 24.71 seconds |
+| Newly missing aliases in this batch | 0 |
+| Scan duration | 31.71 seconds |
+| Applied-CSS audit duration | 3.30 milliseconds |
 
-The latest 32-target batch predicted **65 → 50** unresolved aliases; the actual result was **50**. All 32 target tokens matched through both `disCN` and `dotCN`. The separate custom-status finder matched the actual 15-field export after its editor was opened. The receipt directly records frontend build **652418**, version hash and main asset `web.33a8a649a2fda558.js`; no supplemental identity receipt is needed for this run.
+The latest four-repair batch predicted **50 → 46** unresolved aliases; the actual result was **46**. All four new tokens and the previous checkpoint's 32 target tokens passed. The owned red/yellow text and yellow tooltip background/text/pointer effects matched independent same-context controls; explicit inline overrides and cleanup also passed. The receipt records build **652418**, its version hash and main asset `web.33a8a649a2fda558.js`.
 
-The first scan of this batch, before the editor was opened, already reached 50 missing but left that finder unverified. Its report is retained separately. The preceding 30-alias checkpoint at 18:35:34 UTC had reduced the count from 95 to 65; its original report and bound main-asset supplement also remain intact.
+The preceding 32-target checkpoint at 21:08:34 UTC reached **50 missing**, with its separate status-editor finder verified against all 15 fields after the editor was opened. The earlier 30-alias checkpoint at 18:35:34 UTC had reached **65 missing**. Their original receipts remain separate; the unchanged status descriptor was not made a new editor-opening requirement for this unrelated four-repair batch.
 
 The non-fallback total measures lookup results. It does not independently certify the semantic UI role of every existing mapping. A full group scan deliberately exercises aliases for features that may not currently be open or used.
 
@@ -373,7 +412,7 @@ The temporary local probe runs only from its settings buttons. Startup and openi
 
 ## Remaining work
 
-The remaining **50 aliases** are under investigation. Verified changes will continue in consolidated manual-test batches; the latest batch used the requested **32 verification targets**. The full remaining-alias audit scope is preserved. Changed state representations and unresolved owners do not count as repaired aliases.
+The latest accepted scan reports **46 unresolved aliases** after the native menu-image repair and three owned compatibility styles passed. The other 46 have no accepted replacement. Some states have changed representation, while other legacy owners remain unproven. Verified changes will continue in consolidated manual-test batches; the latest batch used the requested **32 verification targets**. The full remaining-alias audit scope is preserved. Changed state representations and unresolved owners do not count as repaired aliases.
 
 For every manual test, report:
 

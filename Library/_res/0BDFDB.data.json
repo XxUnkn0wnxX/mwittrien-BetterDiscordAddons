@@ -1076,7 +1076,12 @@
 			"themedPopout": "themedPopout_e2c0d0",
 			"tooltipCustom": "tooltipCustom_dc56aa",
 			"tooltipNote": "note_dc56aa",
-			"tooltipRowExtra": "extraRow_dc56aa"
+			"tooltipRowExtra": "extraRow_dc56aa",
+			"compatTooltipYellow": "bdfdb-compat-tooltip-yellow"
+		},
+		"TextColor": {
+			"colorStatusRed": "bdfdb-compat-color-status-red",
+			"colorStatusYellow": "bdfdb-compat-color-status-yellow"
 		},
 		"BD": {
 			"bdChangelogAdded": "bd-changelog-added",
@@ -1348,6 +1353,7 @@
 		}
 	},
 	"LazyloadedClassModules": {
+		"MenuImageCurrent": "c1e9c4",
 		"Animations": "_5cd44",
 		"CallScreenshare": "e4cb9a",
 		"ChannelContainer": "c69b6d",
@@ -1428,6 +1434,7 @@
 		"MessagesPopoutCurrent": "_432f4"
 	},
 	"DiscordClassModules": {
+		"MenuImageCurrent": {"props": ["menu", "imageAccessory", "item"]},
 		"AccountDetails": {"props": ["plated", "nameTag", "panelTitleContainer"]},
 		"AccountDetailsButtons": {"props": ["button", "enabled", "disabled"]},
 		"AccountDetailsButtonsStyle": {"props": ["redIcon", "strikethrough"]},
@@ -2611,7 +2618,7 @@
 		"menuicon": ["Menu", "icon"],
 		"menuiconcontainer": ["Menu", "iconContainer"],
 		"menuiconcontainerleft": ["Menu", "iconContainerLeft"],
-		"menuimage": ["Menu", "image"],
+		"menuimage": ["MenuImageCurrent", "imageAccessory"],
 		"menuimagecontainer": ["Menu", "imageContainer"],
 		"menuitem": ["Menu", "item"],
 		"menulabel": ["Menu", "label"],
@@ -3213,7 +3220,7 @@
 		"tooltiprowicon": ["TooltipGuild", "rowIcon"],
 		"tooltiprowiconv2": ["TooltipGuild", "rowIconV2"],
 		"tooltiptop": ["Tooltip", "tooltipTop"],
-		"tooltipyellow": ["Tooltip", "tooltipYellow"],
+		"tooltipyellow": ["BDFDB", "compatTooltipYellow"],
 		"typing": ["Typing", "typing"],
 		"typingcooldownwrapper": ["TypingCoowldown", "cooldownWrapper"],
 		"typingtext": ["Typing", "text"],

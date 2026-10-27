@@ -1801,3 +1801,18 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 [REPLACE_CLASS__bdmodalcontent] {
 	z-index: 1;
 }
+
+[REPLACE_CLASS_colorred] {
+	color: var(--status-danger);
+}
+[REPLACE_CLASS_coloryellow] {
+	color: var(--status-warning);
+}
+[REPLACE_CLASS_tooltipyellow] {
+	background-color: var(--background-feedback-warning);
+	color: var(--text-feedback-warning);
+	--tooltip-pointer-bg: var(--border-feedback-warning);
+}
+[REPLACE_CLASS_tooltipyellow] [REPLACE_CLASS_tooltippointer] {
+	border-top-color: var(--tooltip-pointer-bg);
+}
