@@ -1160,7 +1160,7 @@ module.exports = (_ => {
 				return {backup: fs.existsSync(path) && (fs.readFileSync(path) || "").toString(), hashIsSame: libHashes[fileName] && oldLibHashes[fileName] && libHashes[fileName] == oldLibHashes[fileName]};
 			};
 			const requestLibraryHashes = tryAgain => {
-				requestFunction("https://api.github.com/repos/mwittrien/BetterDiscordAddons/contents/Library/_res/", {timeout: 60000}, (e, r, b) => {
+				requestFunction("https://api.github.com/repos/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/contents/Library/_res?ref=develop", {timeout: 60000}, (e, r, b) => {
 					if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryHashes(), 10000);
 					else {
 						try {
@@ -1181,7 +1181,7 @@ module.exports = (_ => {
 					const backupObj = getBackup(dataFileName, dataFilePath);
 					const UserStore = BdApi.Webpack && BdApi.Webpack.getModule && BdApi.Webpack.Filters && BdApi.Webpack.Filters.byKeys && BdApi.Webpack.getModule(BdApi.Webpack.Filters.byKeys("getCurrentUser"));
 					if (backupObj.backup && backupObj.hashIsSame || UserStore && UserStore.getCurrentUser().id == "278543574059057154") parseData(backupObj.backup);
-					else requestFunction(`https://mwittrien.github.io/BetterDiscordAddons/Library/_res/${dataFileName}`, {timeout: 60000}, (e, r, b) => {
+					else requestFunction(`https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/${dataFileName}`, {timeout: 60000}, (e, r, b) => {
 						if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryData(), 10000);
 						if (!e && b && r.statusCode == 200) {
 							if (backupObj.backup && backupObj.backup.replace(/\s/g, "") == b.replace(/\s/g, "")) {
@@ -1225,7 +1225,7 @@ module.exports = (_ => {
 				
 				const backupObj = getBackup(cssFileName, cssFilePath);
 				if (backupObj.backup && backupObj.hashIsSame) parseCSS(backupObj.backup);
-				else requestFunction(`https://mwittrien.github.io/BetterDiscordAddons/Library/_res/${cssFileName}`, {timeout: 60000}, (e, r, b) => {
+				else requestFunction(`https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/${cssFileName}`, {timeout: 60000}, (e, r, b) => {
 					if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryData(), 10000);
 					if (!e && b && r.statusCode == 200) {
 						if (backupObj.backup && backupObj.backup.replace(/\s/g, "") == b.replace(/\s/g, "")) {
