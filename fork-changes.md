@@ -35,16 +35,16 @@ The existing resource cache compares saved remote metadata with the fetched remo
 
 ## Class compatibility changes
 
-The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The accepted checkpoint contains **73 data entries or field changes** and restores **69 distinct affected aliases** across the areas below.
+The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The fork now contains **126 changed data entries or fields** relative to the clean upstream branch. The earlier checkpoint covered 69 distinct alias targets; the latest checkpoint adds the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
 
 | Area | Change and verified behavior |
 | --- | --- |
-| Badges | Match the current `numberBadge` / `iconBadge` export without requiring the removed `textBadge` property. Restores seven base, icon, numeric and shape aliases. The old `badgetextbadge` alias remains unresolved. |
+| Badges | Match the current `numberBadge` / `iconBadge` export without requiring the removed `textBadge` property. Restores seven base, icon, numeric and shape aliases. The latest 32-target batch below restores the separate `badgetextbadge` alias. |
 | Image modal | Add verified lazy suffixes for `ModalCarouselNav` and `ImageModalMediaWrapper`, restoring the three navigation aliases and the media wrapper before their modules have loaded. |
 | Animations | Add the current `Animations` suffix for the four mapped animation classes. |
 | Screen sharing | Remove the obsolete `gradientTop` descriptor requirement and use the current `CallScreenshare` suffix for the three controls aliases. |
 | BDFDB changelog | Point `_bdchangelogtitle` to the existing `BD.bdChangelogTitle` class. |
-| Menu slider | Point `menuslider` to the current native `Slider.slider` root. The separate legacy slider-container alias remains unresolved. |
+| Menu slider | Point `menuslider` to the current native `Slider.slider` root. The latest batch below also restores the separate menu slider-container alias. |
 | Reply author | Point `messagereplyname` to the current reply bar’s `MessageReplyBar.name`, keeping the existing reply container/text/close aliases intact. |
 | Image errors | Point `imageerror` to the actual `ImageWrapper.imageErrorWrapper` element. |
 | Server folders | Use `GuildFolder.isHovering` for `guildfolderexpandedbackgroundhover`. |
@@ -83,6 +83,104 @@ The source comparison covers inspected build **650389**, running build **652094*
 
 Unloaded lazy lookups retain BDFDB's existing primary-token behavior. A composed native export such as `clear__0c4c4 icon__0c4c4` returns the primary token before its owner is available; loaded results retain the full native composition. This batch does not rewrite that mechanism. The existing `Text` lazy suffix is unchanged.
 
+
+### Thirty-two-target batch accepted
+
+Source and local validation date: **2026-10-28**, Australia/Melbourne. The installed candidate preserves all **1,620 public alias names** across **312 diagnostic groups**. It adds **53 data-field changes** to the previous checkpoint, bringing the fork comparison to **126 changed data entries**. These changes passed source review, local production-getter checks and the manual runtime gate at **2026-10-27T21:08:34.369Z**. All 32 target class strings matched, and the separate status-editor finder returned the complete expected export.
+
+The 32 verification targets comprise **15 repairs to reported fallback aliases**, **13 corrections to unloaded popout lookups and their cache isolation**, **two stale native-selector repairs**, **one native API alignment**, and **one module-finder repair benefiting eight existing aliases**. This is 32 verified targets across shared repairs, not 32 independent defects. The pre-test prediction was **65 missing → 15 intended fallback repairs → approximately 50 remaining**. The actual post-test total was **50**, with no newly missing aliases, getter errors or undefined results.
+
+| Area | Targeted correction |
+| --- | --- |
+| Combobox | Use the current combobox, item and item-label export for three aliases. |
+| Live indicators | Separate the current live wrapper, gray variant and large badge owner. The round and non-round branches differ; the old small-state alias remains unresolved. |
+| Text badge | Point the removed legacy text-badge lookup to the current native badge root without changing the other badge aliases. |
+| Profiles | Restore the role-list container, mutual-guild icon/no-icon alternatives and the section wrapper used by the actual compact profile popout. |
+| Go Live, servers and members | Identify the current Go Live actions, server-discovery container and member activity wrapper. Server discovery excludes the separate Apps and Quests routes. |
+| Menu slider | Match the current one-field menu-control wrapper, distinct from the slider itself. |
+| Existing native hooks | Restore the reaction display-name wrapper and keybind value wrapper, and align the PersonalPins channel-name hook with its current native API. The old channel label already had BDFDB-owned CSS. |
+| Popout fallback hashes | Move 13 supported aliases to a current internal group with the verified `_432f4` suffix. Their loaded native owner is unchanged. This fixes unloaded lookups and isolates them from the legacy scrolling-footer lookup that overwrites the old group cache. |
+| Custom-status editor | Replace the retired `header` fingerprint requirement with four current properties and the actual 15-field export shape. All eight existing aliases and their class strings stay intact. |
+
+The popout's old `scrollingFooterWrap` alias, group and suffix remain unchanged and unresolved. Its retained stylesheet rule does not establish a current native export. The current popout stylesheet is lazy-loaded. The accepted receipt lists `eaf6028a1440e4c0.css` as linked; this establishes stylesheet availability in that run, without independently proving PersonalPins' visual rendering. No stylesheet is force-loaded by this patch.
+
+The status-editor finder needs separate runtime evidence because its eight strings were already correct through lazy fallback. The temporary probe records the original cached group and, only during the manual full scan, makes a separate paced call to BDFDB's public finder. The accepted fresh result matched the exact deployed descriptor and all 15 expected fields and values. The original group snapshot still contained a synthesized class entry, so this proves the repaired finder rather than a change to the existing class-group cache. The manual sequence is: reload Discord, open and close the custom-status editor, then press the full-scan button. Startup and opening the probe settings perform no module scan.
+
+Local checks cover all 32 loaded/unloaded getter targets, **113 known native-token outputs**, and **1,588 unchanged sibling aliases**. Additional checks reproduce the old popout cache failure, exercise the legacy orphan before/between/after reads with loaded and unloaded owners, and prove that the old status fingerprint fails while the new fingerprint finds the actual export. The final production-getter run took approximately **2.16 seconds**. These are local fixture/source results, not a live Discord receipt.
+
+This batch was inspected directly against stable frontend **652418**, version hash `5c8490b77d210a433203192c6e08fb7cd45550c8`, main asset `web.33a8a649a2fda558.js`. A public bootstrap check at **2026-10-27T20:57:38.458Z** still served that revision. It is a frontend/module identity, not a backend deployment identifier.
+
+<details>
+<summary>Current batch JavaScript assets, module IDs and SHA-256 checksums</summary>
+
+```text
+Base URL: https://discord.com/assets/
+Build: stable 652418
+Version: 5c8490b77d210a433203192c6e08fb7cd45550c8
+Sentry: 2026-10-27-5c8490b77d210a433203192c6e08fb7cd45550c8-discord_web
+Built at: 1793113957288 (milliseconds since Unix epoch)
+
+09ba38cf8a5112d2.js [modules 577593]
+  sha256 c0686dd29ebe67b677148dfbfa9aaba3f236cf893815f60d27c084324f0fb366
+10bc7c0638948f18.js [modules 247261]
+  sha256 f4fa3b846894f5065210224d0aafd82fa35357cd27e211f74171e02073bc42c0
+110425.46a603d20543adb5.js [modules 874888]
+  sha256 25ecfe66b3230c2f033e2497bbf0a499f4862741d99cd7bbdc6b70f75cc231bb
+125eed40b24e0032.js [modules 635242]
+  sha256 f00a4527506863f864ed3388eda06715bee13cb74932a49d2aedcde4be678e02
+1bce0236639292ba.js [modules 945830]
+  sha256 f88db7e6b61f73bdb52d5541076f8295c89ceb623c634727d98892283f2e7898
+1d9944b5a565c718.js [modules 68450]
+  sha256 1a4779451c73a174704a7d4796abd6498cb81b586afa23e783b1f2b0924b6e36
+3485a255d0c8c218.js [modules 166005]
+  sha256 36a825865703d1ffaf44374e79191b9ae484bbb6abdb2385650fced192155f0c
+384209.5f531bc85f869b5d.js [modules 963434]
+  sha256 53361e8ceba3ecccd140f56025176269fd9c4898b47d47b841d96bf386f08c5d
+43eb9ce26873201a.js [modules 657977]
+  sha256 b59782a7b637075b4630e1a8da8efd7ba3241f636b8fc77bbdfcc85f55a080ea
+4ea98eea20046cd6.js [modules 173842]
+  sha256 af3c83009c1e71d0d2d7e8dd7686f298a3157667898c0524039bbc0cc3199db1
+535308.64580ddd66d53c21.js [modules 161185]
+  sha256 2acf7082b05ad3d5713ec9dab083b15435e6bb704f5ae5b05eb10d279422cfc0
+56606.9b22985f3cf034eb.js [modules 996205]
+  sha256 a1192e130faee5091802a166196e92264ba25a710b11090818d88d97adb422d1
+5c0f9ba48d69b587.js [modules 942262]
+  sha256 5fffbe437121e5c730817ce3c57489e7eeae024d6b8c9d223e56f0099dbb5734
+66607a54f94cc009.js [modules 714539]
+  sha256 8e5ab88ee701a717910a1faa8aad2d5cf207b9d34429c88728c3b9a021acba67
+67e30604a92e0b3f.js [modules 877149]
+  sha256 4d0b49dc8d3da2ced8c0b3d7efa452ea1df5c370b06409c7371267438e37f064
+6e5b8da464b02ede.js [modules 317070, 409757]
+  sha256 e50ca7f1d9a71f2d07095364c04b082bd949a213f00ee856c2f90bcb0af0ec37
+7b1a4db3e67a2fe2.js [modules 112753]
+  sha256 c0b2ea1e0b59a60e5a88c294031e203077e49d90c5c5cb60fb8495eca1de9305
+82cb2811a0004053.css [modules ]
+  sha256 3338e1f5a65790a413837090f3bfedef439e06aa618965a6ea3500567f227991
+830171.0a7ee0ba708d0c2f.js [modules 79958]
+  sha256 6a78e21ab603a333b84d67403f9d18093f542ebba76829572b52bc56e3930561
+8a04b9d0f2487cb6.js [modules 298242, 486487]
+  sha256 d0b8f8d3d836271a0d454a48cf8157df1182eec6e62156ffeae034a6aca2af95
+8ef2441f0248738d.js [modules 272917]
+  sha256 2ca7812bb99427f5e439cb77b8c47ff96b65afd393a3a205eb53345eb2152081
+8f6aa2de0aeace08.js [modules 190199]
+  sha256 ff73ea48fd4f7a30f6e93efddaffb96db501af9b51bff4a18590157ce7728d16
+971082.64a31dd2b20f301b.js [modules 889553]
+  sha256 46793ec0b4964ff27182f17152ad49bbc8c8fbb050c979c604f74c80359eea0c
+986e56bc29420c57.js [modules 51943]
+  sha256 82e02ec5bccd08312143f1ab6cfc32d1add1f11fbc96d039640f04b12e6aa89d
+a9b65c4f0f4fcaba.js [modules 434367]
+  sha256 670ef507194d52f0b717e305afdfbcce236a651ea245eff5723aa5b47bbc0b7f
+b240d733260cf9cf.js [modules 545760]
+  sha256 2b406075759041d00dd94d617262904606634c98269ea5cc70c4f21e280a1f7f
+fa07ff6bfd4a69d3.js [modules 9570]
+  sha256 4b068d2832ed5f206b6be709a157088788c9e3a3659bf741d8adbbb6f568edf4
+fd7ec6e2a703b0d8.js [modules 503026]
+  sha256 e9219c5dad809b92e0ed07789c9b593a189a294ac522929c4f86d703e90e87a0
+web.33a8a649a2fda558.js [modules 62010, 115486, 193663, 286134, 402216, 442228, 589158, 856488, 900179, 964355, 964570]
+  sha256 5b2afcf1dea50e7e6e98e460cf8dba00101ff37c4610363f7002719de4f7bb1c
+```
+
+</details>
 
 ### Ownership and state boundaries
 
@@ -251,29 +349,31 @@ JS f1b21daced4ed09a.js [builds 652094, 652418]
 
 ### Live lookup results
 
-The latest accepted manual full scan ran at **2026-10-27 18:35:34 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
+The latest accepted manual full scan ran at **2026-10-27 21:08:34 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
 
 | Check | Result |
 | --- | ---: |
-| Groups covered | 303 |
+| Groups covered | 312 |
 | Unique aliases covered | 1,620 |
-| Aliases returning non-fallback strings | 1,555 |
-| Aliases still returning missing-class fallbacks | 65 |
+| Aliases returning non-fallback strings | 1,570 |
+| Aliases still returning missing-class fallbacks | 50 |
 | Getter errors / undefined results / malformed mappings | 0 |
 | Newly missing aliases in that batch | 0 |
-| Scan duration | 29.46 seconds |
+| Scan duration | 24.71 seconds |
 
-The latest 30-alias batch predicted **95 → 65** unresolved aliases; the actual result was **65**, with all 30 expected tokens matching through both `disCN` and `dotCN`. The report recorded the build/version metadata; a separate whitelisted Console check supplied the main asset `web.33a8a649a2fda558.js` after the probe’s metadata limit missed that filename. The original report is preserved and the supplemental receipt binds its exact bytes and tested data.
+The latest 32-target batch predicted **65 → 50** unresolved aliases; the actual result was **50**. All 32 target tokens matched through both `disCN` and `dotCN`. The separate custom-status finder matched the actual 15-field export after its editor was opened. The receipt directly records frontend build **652418**, version hash and main asset `web.33a8a649a2fda558.js`; no supplemental identity receipt is needed for this run.
+
+The first scan of this batch, before the editor was opened, already reached 50 missing but left that finder unverified. Its report is retained separately. The preceding 30-alias checkpoint at 18:35:34 UTC had reduced the count from 95 to 65; its original report and bound main-asset supplement also remain intact.
 
 The non-fallback total measures lookup results. It does not independently certify the semantic UI role of every existing mapping. A full group scan deliberately exercises aliases for features that may not currently be open or used.
 
-Focused checks exercise the production finder, class-module proxy and class/selector getters against captured source fixtures. They cover loaded-module identity before lazy synthesis, unloaded-module results, expected tokens, affected sibling aliases, stale-cache rejection, plausible wrong owners and preservation of the public alias inventory. The final batch check exercised all 30 replacements, 73 known native-token checks and 1,590 sibling aliases in about 0.43 seconds. The temporary probe’s focused checks also passed. The resource JSON preserves the existing formatting; its parsed values and key order are identical to the live-tested data.
+Focused checks exercise the production finder, class-module proxy and class/selector getters against captured source fixtures. They cover loaded-module identity before lazy synthesis, unloaded-module results, expected tokens, affected sibling aliases, stale-cache rejection, plausible wrong owners and preservation of the public alias inventory. The latest local batch check exercised all 32 targets, 113 known native-token checks and 1,588 sibling aliases in about 2.16 seconds. It also reproduced the old popout cache failure, checked six loaded/unloaded orphan interleavings, and verified that the repaired status fingerprint finds the actual export while preserving its eight public outputs. The temporary probe’s focused checks also passed. The resource JSON preserves the existing formatting; its parsed values and key order are identical to the live-tested data.
 
 The temporary local probe runs only from its settings buttons. Startup and opening or reopening settings do not start a scan. It records pre-lookup snapshots, separates native-export and stylesheet-only evidence, supports cancellation, and reports save failures. This diagnostic helper and its local evidence captures are not part of the production library change.
 
 ## Remaining work
 
-The remaining **65 aliases** are under investigation. Verified replacements will be consolidated into batches of **roughly 30 repaired aliases per manual test**, while preserving the full remaining-alias audit scope. Changed state representations and unresolved owners do not count as repaired aliases.
+The remaining **50 aliases** are under investigation. Verified changes will continue in consolidated manual-test batches; the latest batch used the requested **32 verification targets**. The full remaining-alias audit scope is preserved. Changed state representations and unresolved owners do not count as repaired aliases.
 
 For every manual test, report:
 
