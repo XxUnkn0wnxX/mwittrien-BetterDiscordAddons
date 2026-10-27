@@ -35,7 +35,7 @@ The existing resource cache compares saved remote metadata with the fetched remo
 
 ## Class compatibility changes
 
-The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The earlier accepted checkpoints contain **126 changed data entries or fields** relative to the clean upstream branch. The latest accepted four-repair batch adds one isolated native menu-image mapping and three owned style values. The earlier checkpoint covered 69 distinct alias targets; the latest checkpoint adds the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
+The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The earlier accepted checkpoints contain **126 changed data entries or fields** relative to the clean upstream branch. Subsequent accepted batches add one isolated native menu-image mapping, three owned style values, and five native activity/name-container repairs. The earlier checkpoint covered 69 distinct alias targets, followed by the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
 
 | Area | Change and verified behavior |
 | --- | --- |
@@ -233,6 +233,51 @@ The palette, menu and tooltip CSS assets are listed by the accepted live build r
 
 </details>
 
+### Activity icons and name-container root — accepted
+
+The **2026-10-28** source review adds five native repairs for stable frontend **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`, using `web.33a8a649a2fda558.js`:
+
+| Public alias | Current mapping | Native class |
+| --- | --- | --- |
+| `namecontainer` | `MemberActivityCurrent.container` | `container__91a9d` |
+| `dmchannelactivity` | `CustomStatusIcon.container` | `container_c9d15c` |
+| `dmchannelactivityemoji`, `customstatusemoji` | `CustomStatusIcon.emoji` | `emoji_c9d15c` |
+| `customstatusicon` | `CustomStatusIcon.icon` | `icon_c9d15c` |
+
+The original `CustomStatusIcon` group and its two public mappings are retained. Its fingerprint replaces the removed `textRuler` property with `customStatusContent`, and its verified lazy suffix is `c9d15c`. The upstream author's [2021 preview](https://github.com/mwittrien/BetterDiscordAddons/blob/70767d645867078352d06d579c7dd8358df9e568/Plugins/_res/DiscordPreview.html) places `customstatusicon` on an activity icon; the current activity and emoji renderers assign the corresponding fields from owner `607013`. These shared activity classes also occur outside DMs, so consumers requiring a DM-only selector still need the appropriate ancestor scope.
+
+The name-container repair uses the exact `container__91a9d` value preserved in [upstream history](https://github.com/mwittrien/BetterDiscordAddons/blob/4ca5c82a26ca7293f1a247854d326bcd3e5811b4/Library/_res/0BDFDB.data.json) and the current member-row renderer. The existing six `NameContainer` sibling mappings remain intact. The shared AvatarWithText `layout__20a53` root is a different node and is not used as a substitute.
+
+Focused checks against the production finder and all six class/selector getters pass for the five targets in loaded and unloaded fixtures. All 1,620 alias names remain, and 29,070 sibling getter comparisons are unchanged. This batch changes five data paths and adds no production JavaScript or CSS. The manual full scan at **2026-10-27 23:24:06 UTC** passed all five repairs: **46 → 41 unresolved aliases**, exactly as predicted, with no newly missing aliases or getter errors.
+
+The local verification probe now uses `BdApi.Utils.loadEntry` for a closed list of 21 source-reviewed class providers during the manual full-scan action. It checks fresh BDFDB discovery, complete expected class fields and native export identity separately from alias results. The manual run verified all **21 providers and 213 expected native class fields**: two providers were already available, and 19 were initialized through the loader. Build checks, preload-wrapper handling, cancellation and non-overlapping audit paths pass focused tests. An unavailable loader or an unrecognized bootstrap factory is reported explicitly. This diagnostic loading does not count as additional permanent mapping repairs, and a warmed scan does not establish cold-start or native stylesheet availability. Startup and settings opening do not run the audit.
+
+<details>
+<summary>Build-specific source assets for these five repairs</summary>
+
+```text
+Source review date: 2026-10-28 (Australia/Melbourne)
+Frontend: stable build 652418
+Version: 5c8490b77d210a433203192c6e08fb7cd45550c8
+
+Main: web.33a8a649a2fda558.js
+SHA-256: 5b2afcf1dea50e7e6e98e460cf8dba00101ff37c4610363f7002719de4f7bb1c
+
+Member class owner 996205: 56606.9b22985f3cf034eb.js
+SHA-256: a1192e130faee5091802a166196e92264ba25a710b11090818d88d97adb422d1
+
+Activity class owner 607013: 691398.d73af4576252e14c.js
+SHA-256: 33a6fa2aa3588d1c453dd4d9d888ad66271f1b377f5b03118a802226171dd5a2
+
+Activity icon renderers 835072/864436: f0ff497306e10c95.js
+SHA-256: 2757cad778eccba8c5a45fb012299e9e6058096b99cf2aee0d8b5b482758dbe6
+
+Emoji renderer 51183: aab264f3be51e622.js
+SHA-256: 4f7afc544b6b2826dedfdda8b29aa6100427a9217c241e4c26a0f193e6f643bf
+```
+
+</details>
+
 ## Verification checkpoint
 
 ### Module revision targeted by the source audit
@@ -387,20 +432,23 @@ JS f1b21daced4ed09a.js [builds 652094, 652418]
 
 ### Live lookup results
 
-The latest accepted manual full scan ran at **2026-10-27 22:02:51 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
+The latest accepted manual full scan ran at **2026-10-27 23:24:06 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
 
 | Check | Result |
 | --- | ---: |
 | Groups covered | 313 |
 | Unique aliases covered | 1,620 |
-| Aliases returning non-fallback strings | 1,574 |
-| Aliases still returning missing-class fallbacks | 46 |
+| Aliases returning non-fallback strings | 1,579 |
+| Aliases still returning missing-class fallbacks | 41 |
 | Getter errors / undefined results / malformed mappings | 0 |
 | Newly missing aliases in this batch | 0 |
-| Scan duration | 31.71 seconds |
-| Applied-CSS audit duration | 3.30 milliseconds |
+| Native class providers verified | 21 |
+| Scan duration, including provider loading | 25.85 seconds |
+| Applied-CSS audit duration | 3.20 milliseconds |
 
-The latest four-repair batch predicted **50 → 46** unresolved aliases; the actual result was **46**. All four new tokens and the previous checkpoint's 32 target tokens passed. The owned red/yellow text and yellow tooltip background/text/pointer effects matched independent same-context controls; explicit inline overrides and cleanup also passed. The receipt records build **652418**, its version hash and main asset `web.33a8a649a2fda558.js`.
+The latest five-repair batch predicted **46 → 41** unresolved aliases; the actual result was **41**. All five new tokens and the previous 36 target tokens passed. All 1,574 previously working aliases remain resolved with their class and selector values preserved, except for two source-verified primary-to-native class compositions: the discovery search bar gains its native search class, and the search clear control gains its native icon class. The owned red/yellow text and yellow tooltip background/text/pointer effects, explicit inline overrides and cleanup also passed. The receipt records build **652418**, its version hash and main asset `web.33a8a649a2fda558.js`.
+
+The preceding four-repair scan at 22:02:51 UTC reached **46 missing** from 50, covering the menu image and three owned compatibility styles.
 
 The preceding 32-target checkpoint at 21:08:34 UTC reached **50 missing**, with its separate status-editor finder verified against all 15 fields after the editor was opened. The earlier 30-alias checkpoint at 18:35:34 UTC had reached **65 missing**. Their original receipts remain separate; the unchanged status descriptor was not made a new editor-opening requirement for this unrelated four-repair batch.
 
@@ -412,7 +460,7 @@ The temporary local probe runs only from its settings buttons. Startup and openi
 
 ## Remaining work
 
-The latest accepted scan reports **46 unresolved aliases** after the native menu-image repair and three owned compatibility styles passed. The other 46 have no accepted replacement. Some states have changed representation, while other legacy owners remain unproven. Verified changes will continue in consolidated manual-test batches; the latest batch used the requested **32 verification targets**. The full remaining-alias audit scope is preserved. Changed state representations and unresolved owners do not count as repaired aliases.
+The latest accepted scan reports **41 unresolved aliases**. Some states have changed representation, while other legacy owners remain unproven. The next checkpoint will consolidate the entire remaining repair set. The full remaining-alias audit scope is preserved; changed state representations and unresolved owners do not count as repaired aliases.
 
 For every manual test, report:
 
