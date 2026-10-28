@@ -2,7 +2,7 @@
 
 Last updated: **2026-10-28** (Australia/Melbourne).
 
-This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptor and mapping changes.
+This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
 Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/BetterDiscordAddons). These changes are maintained on this fork’s `develop` branch until equivalent upstream fixes are available.
 
@@ -15,7 +15,7 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 
 The current comparison base is upstream commit `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
-This checkpoint records partial compatibility work maintained on develop. The remaining unresolved aliases are listed by count below; the upstream comparison branch stays clean.
+This checkpoint completes the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
 
 ## BDFDB resource downloads
 
@@ -32,6 +32,148 @@ The metadata endpoint deliberately has no slash before `?ref=develop`: the slash
 The plugin’s upstream `@updateUrl` and `PluginUrlMap.BDFDB` entry remain unchanged. A future upstream plugin update can therefore replace this temporary downloader override.
 
 The existing resource cache compares saved remote metadata with the fetched remote hashes. It does not hash the local edited resource file to decide whether it should be downloaded again. Local testing can therefore retain patched resources while the saved metadata still matches the remote branch. Missing resources, changed remote hashes, or a replacement plugin can cause resources to be downloaded again. Deleting the installed JSON or CSS during local testing can retrieve the remote copy before the local repairs have been published.
+
+## Remaining 41 package — accepted lookup checkpoint
+
+Prepared on **2026-10-28** against stable frontend **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`, main asset `web.33a8a649a2fda558.js`. The final manual receipt at **2026-10-28 02:12:06 UTC** reached **0 unresolved aliases**, matching the **41 → 0** prediction. The installed package preserves all **1,620 public aliases**, the **1,579 previously resolved mappings**, existing native descriptors and lazy suffixes, and the **213 previously verified native provider fields**. The actual scan covered **314 groups / 1,620 aliases**, with no getter errors or malformed mappings. All **1,579 previously working class and selector outputs** matched the accepted baseline exactly.
+
+The package adds an isolated `BDFDBCompat` class group. Verified native owners receive the necessary class markers through their existing props, render output or committed refs. The existing BDFDB plugin dispatcher and class/selector getters retain their behavior. Plugins continue to use their existing aliases.
+
+| Area | Compatibility work |
+| --- | --- |
+| Editor and direct profile composer | Mark the actual editable leaf through `textAreaPaddingClassName`; preserve native input state, send behavior and current editor padding. The original direct composer uses `user_profile`; the separate contextual reply composer keeps its own behavior. |
+| Server header and favorites | Mark the real dropdown SVG and its open state, including deferred popout render callbacks. Restore the favorites ring wrapper used by DisplayServersAsChannels. |
+| Native dialogs and layers | Mark the actual attachment-edit and DM-add modal containers. Restore the precise hidden-layer state and identify backdrops through their committed native LayerContainer parent. |
+| Profiles | Restore sourced banner/premium, avatar/bot/position, solo-emoji and explicit last-section predicates. The supported avatar hint remains a non-interactive overlay, preserving the current native action. |
+| Other native UI | Restore the editable Card modifier, painted voice-quality paths, non-round small live tag, channel-topic body, text-preview download SVG, welcome glyph/edit button and private-channel avatar targets. |
+| Styling utilities | Keep `textareaaccessorybar` and `goliveclickablegamewrapper` tied to their real current CSS tokens. Restore the proven legacy CSS utilities for `menuimagecontainer` and `unreadbaricon`. These four aliases make styling APIs available; they do not assert a current native node or invent an unread glyph. |
+
+The compatibility code uses the React/JSX interception targets already used by BDFDB. Stable component identities survive library reevaluation; a mounted original functional component is deferred until a safe close/reopen rather than having its input state reset. Instance-field hooks have weak ownership and are cancelled on stop/unmount. Compatibility initialization failures preserve the existing plugin rendering callbacks. Generation guards prevent an obsolete initializer from publishing globals or writing downloaded resources after a newer initialization takes ownership.
+
+Local checks cover all 20 current owner signatures across the captured asset catalogue, exact owner function hashes, the existing BDFDB dispatcher with BetterDiscord’s local patcher, deferred Header callbacks, memo/forwardRef legacy callback generations, input state/focus/refs, normal animated backdrop creation, cached-only helper discovery, failed initialization and stale request callbacks. **12,632 sibling getter-form comparisons** preserve the other 1,579 aliases. The temporary probe retains its 21 reviewed manual providers and distinguishes resolved tokens, CSS utilities and observed current UI nodes. Startup and opening settings perform no scan.
+
+The final manual check also verified **21 native providers / 213 native fields**, the existing three owned styles and four utility fixtures. All **eight owners encountered during the normal UI check** prepared successfully, matched an audited source fingerprint and reported no failures. PersonalPins’ icons were confirmed visually by the user. The probe observed four conditional aliases in the current document; **33 other conditional aliases remained unobserved** after their UI was closed or because their conditions were not exercised. Their source and focused fixtures are recorded separately; this checkpoint does not claim every possible UI state was displayed.
+
+Six owners have equivalent declarations in both the main bundle and lazy chunks under the same module IDs. Their exact source fingerprints differ because of minified identifiers. Both captured variants passed role, prop, import/call, predicate and JSX-shape comparison; the probe accepts only those recorded alternatives. Helper discovery identifies the original modal and premium namespaces, and revalidates finder results so a matched factory’s exports cannot be mistaken for its hook.
+
+This work follows changes in Discord’s delivered frontend. Its applicability is tied to the frontend revision recorded here; an older BetterDiscord/Electron client can have additional independent compatibility limits. The fork preserves the existing plugin-facing API.
+
+<details>
+<summary>Remaining-package JavaScript assets and SHA-256 checksums</summary>
+
+```text
+Date: 2026-10-28
+Base URL: https://discord.com/assets/
+Build: stable 652418
+Version: 5c8490b77d210a433203192c6e08fb7cd45550c8
+Main: web.33a8a649a2fda558.js
+Main sha256: 5b2afcf1dea50e7e6e98e460cf8dba00101ff37c4610363f7002719de4f7bb1c
+
+03e702e18283989b.js [modules 993077]
+  sha256 a9afb9650075944eaa555f5fc4bbb9e0e993f44c0cb75656f4331e44131bfe96
+382b6917c686b013.js [modules 181094]
+  sha256 994e142d3bcc4cc370befc4fbcd00f1a4511ca68ac6300dd1e6d6bb2ad7e88b4
+4ea98eea20046cd6.js [modules 173842]
+  sha256 af3c83009c1e71d0d2d7e8dd7686f298a3157667898c0524039bbc0cc3199db1
+8a04b9d0f2487cb6.js [modules 999751, 452015]
+  sha256 d0b8f8d3d836271a0d454a48cf8157df1182eec6e62156ffeae034a6aca2af95
+8e1ca1a62f74fcbc.js [modules 718019]
+  sha256 106c1a1dc950d6742a874eae52f323dd4f590ee5b6bc79f991819404e37035fd
+9ffc96adc8627c5b.js [modules 900179, 915614]
+  sha256 f65b0ca7edb56367155568dad2689e2aaf0b6aed4d7ea73b2ce93e0723fc2bb0
+c230fc948a50fa03.js [modules 44788]
+  sha256 5a967f53b5445c810167f3e6e2ccb7e791da1b21d67183001bae92cb3f97cb07
+cf81c8968408d3de.js [modules 314307, 425812]
+  sha256 d26bbb43bb9cddc16dc7faa1604bd31f2219b929c7eec8af0452106fc8217941
+d29157b7d9faba67.js [modules 394816]
+  sha256 d7dd8cc092deccaf5ac13e5fb1f66da4b727afbba672472350642ebb9191f5c5
+d7e7be277ff35925.js [modules 402216]
+  sha256 e69895a076b1eeb77e514e3c02108c2217cc30600ce3e1e46bdfaacc586afdda
+d9ca6831baf622ca.js [modules 392553]
+  sha256 c47f5345c654adeed7ddb60a39c3764297de4f6c88131203b27da37be6f3d7c7
+e68d7398a600e53b.js [modules 799871]
+  sha256 d04d9b0dee0b8e1c88458203e87248f4d64ed7e19667e68ee79d4b2b7f77b9b2
+web.33a8a649a2fda558.js [modules 255434, 638495, 242816, 189213]
+  sha256 5b2afcf1dea50e7e6e98e460cf8dba00101ff37c4610363f7002719de4f7bb1c
+```
+
+<details>
+<summary>Audited main-declaration variants and copied native CSS</summary>
+
+```text
+channelEditor [module 392553, main offset 3382495]
+  sha256 b5f2bd63fc6859556ae7b92df5a1ec1c584b8cf91b2bd360c5e2776cc734bd7b
+plaintextTools [module 44788, main offset 6278927]
+  sha256 876a1f3eb9e7f77c8ff8c934f3e7399b9ab2da8fe412eb08eacc34a7a0b6450f
+profileBannerFill [module 915614, main offset 8362346]
+  sha256 0045ac9b2600f53f128e70adeaa32e97b7c846b7d2babc515f2a8302fd327bdc
+profileBannerType [module 915614, main offset 8363243]
+  sha256 9ed61dd3307bf644176d3a075f1401d794b596416644e12fa0923f7ae4686eb7
+profileAvatar [module 718019, main offset 8341680]
+  sha256 6a06ea129254ce7dc2c5b04e631079c0f34ad237bc29cb0652b2a4c9d16abc93
+profileSection [module 900179, main offset 8370047]
+  sha256 d6199481c822267a8ea878cde94b1aec216d2a030f446707143a2764aa5fe925
+
+962953.64344fbf982477be.css
+  sha256 a29ae4869cf70278496c222bd163fee12139f894d149442d54ecce15f5a199b0
+830171.7b749dea13d32e75.css
+  sha256 1ab9fc86218524aac0003f008044e3bc3346f7f38eae35828b849f033edac173
+```
+
+</details>
+
+Historical first-party client captures establish the old predicates and utility styles; they are separate from the current 652418 source above. The dated records include Canary build 275944 and the pinned [native capture](https://github.com/hackermondev/discrapper-canary/tree/5dbd49b2b7a1bb4ec2fce5813f2afbc7c17251aa).
+
+</details>
+
+<details>
+<summary>Public aliases covered by the remaining package</summary>
+
+```text
+backdropwithlayer [owned-compatibility-marker]
+cardeditable [owned-compatibility-marker]
+textareaaccessorybar [native-css-utility]
+textareafontsize12padding [owned-compatibility-marker]
+textareafontsize14padding [owned-compatibility-marker]
+textareafontsize15padding [owned-compatibility-marker]
+textareafontsize16padding [owned-compatibility-marker]
+textareafontsize18padding [owned-compatibility-marker]
+textareafontsize20padding [owned-compatibility-marker]
+textareafontsize24padding [owned-compatibility-marker]
+userpopoutcustomstatussoloemoji [owned-compatibility-marker]
+dmaddpopout [owned-compatibility-marker]
+filedownloadbutton [owned-compatibility-marker]
+goliveclickablegamewrapper [native-css-utility]
+guildfavoritesring [owned-compatibility-marker]
+guildheaderbutton [owned-compatibility-marker]
+guildheaderbuttonopen [owned-compatibility-marker]
+modalminitext [owned-compatibility-marker]
+livetagsmall [owned-compatibility-marker]
+menuimagecontainer [owned-css-utility]
+messagemarkuptimestamptooltip [native-css-with-owner-hook]
+messageswelcomelocked [owned-compatibility-marker]
+messageswelcomebutton [owned-compatibility-marker]
+messageswelcomebuttonicon [owned-compatibility-marker]
+modallayerhidden [owned-compatibility-marker]
+modallayerbackdropwithlayer [owned-compatibility-marker]
+quickmessage [owned-compatibility-marker]
+recentmentionsdmicon [owned-compatibility-marker]
+unreadbaricon [owned-css-utility]
+uploadmodal [owned-compatibility-marker]
+userbannerpopout [owned-compatibility-marker]
+userbannerpopoutpremium [owned-compatibility-marker]
+userbannermodal [owned-compatibility-marker]
+userbannermodalpremium [owned-compatibility-marker]
+userpopoutavatarhint [owned-compatibility-marker]
+userpopoutavatarhintinner [owned-compatibility-marker]
+userpopoutavatarpositionnormal [owned-compatibility-marker]
+userpopoutavatarwrappernonuserbot [owned-compatibility-marker]
+userpopoutavatarwrappernormal [owned-compatibility-marker]
+userpopoutsectionlast [owned-compatibility-marker]
+voicedetailspingforeground [owned-compatibility-marker]
+```
+
+</details>
 
 ## Class compatibility changes
 
@@ -432,35 +574,40 @@ JS f1b21daced4ed09a.js [builds 652094, 652418]
 
 ### Live lookup results
 
-The latest accepted manual full scan ran at **2026-10-27 23:24:06 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
+The latest accepted manual full scan ran at **2026-10-28 02:12:06 UTC**, on stable frontend build **652418**, revision `5c8490b77d210a433203192c6e08fb7cd45550c8`:
 
 | Check | Result |
 | --- | ---: |
-| Groups covered | 313 |
+| Groups covered | 314 |
 | Unique aliases covered | 1,620 |
-| Aliases returning non-fallback strings | 1,579 |
-| Aliases still returning missing-class fallbacks | 41 |
+| Aliases returning non-fallback strings | 1,620 |
+| Missing-class fallbacks | 0 |
 | Getter errors / undefined results / malformed mappings | 0 |
-| Newly missing aliases in this batch | 0 |
-| Native class providers verified | 21 |
-| Scan duration, including provider loading | 25.85 seconds |
-| Applied-CSS audit duration | 3.20 milliseconds |
+| Previous class and selector outputs preserved | 1,579 |
+| Native providers / verified fields | 21 / 213 |
+| Observed owners with prepared handlers and accepted source hashes | 8 |
+| Controller failures / source mismatches / matched unprepared owners | 0 |
+| Scan duration, including provider loading | 18.58 seconds |
+| Existing applied-CSS audit duration | 3.30 milliseconds |
 
-The latest five-repair batch predicted **46 → 41** unresolved aliases; the actual result was **41**. All five new tokens and the previous 36 target tokens passed. All 1,574 previously working aliases remain resolved with their class and selector values preserved, except for two source-verified primary-to-native class compositions: the discovery search bar gains its native search class, and the search clear control gains its native icon class. The owned red/yellow text and yellow tooltip background/text/pointer effects, explicit inline overrides and cleanup also passed. The receipt records build **652418**, its version hash and main asset `web.33a8a649a2fda558.js`.
+The whole remaining package predicted **41 → 0** unresolved aliases; the actual result was **0**. All 41 target tokens and selectors passed. Existing provider identities, 213 native fields, owned red/yellow text and yellow tooltip effects, explicit inline overrides and cleanup passed. The four added CSS utility checks passed. The saved receipt also confirms the installed JavaScript, JSON and CSS match the locally checked files. The user confirmed PersonalPins icons look right.
 
+The previous five-repair checkpoint at 23:24:06 UTC reached **41 missing** from 46. Its receipt remains a separate historical result.
 The preceding four-repair scan at 22:02:51 UTC reached **46 missing** from 50, covering the menu image and three owned compatibility styles.
 
 The preceding 32-target checkpoint at 21:08:34 UTC reached **50 missing**, with its separate status-editor finder verified against all 15 fields after the editor was opened. The earlier 30-alias checkpoint at 18:35:34 UTC had reached **65 missing**. Their original receipts remain separate; the unchanged status descriptor was not made a new editor-opening requirement for this unrelated four-repair batch.
 
 The non-fallback total measures lookup results. It does not independently certify the semantic UI role of every existing mapping. A full group scan deliberately exercises aliases for features that may not currently be open or used.
 
-Focused checks exercise the production finder, class-module proxy and class/selector getters against captured source fixtures. They cover loaded-module identity before lazy synthesis, unloaded-module results, expected tokens, affected sibling aliases, stale-cache rejection, plausible wrong owners and preservation of the public alias inventory. The latest local batch check exercised all 32 targets, 113 known native-token checks and 1,588 sibling aliases in about 2.16 seconds. It also reproduced the old popout cache failure, checked six loaded/unloaded orphan interleavings, and verified that the repaired status fingerprint finds the actual export while preserving its eight public outputs. The temporary probe’s focused checks also passed. The resource JSON preserves the existing formatting; its parsed values and key order are identical to the live-tested data.
+Focused checks exercise the production finder, class-module proxy and class/selector getters against captured source fixtures. They cover loaded-module identity before lazy synthesis, unloaded-module results, expected tokens, affected sibling aliases, stale-cache rejection, plausible wrong owners and preservation of the public alias inventory. The preceding 32-target local batch check exercised all 32 targets, 113 known native-token checks and 1,588 sibling aliases in about 2.16 seconds. It also reproduced the old popout cache failure, checked six loaded/unloaded orphan interleavings, and verified that the repaired status fingerprint finds the actual export while preserving its eight public outputs. The temporary probe’s focused checks also passed. The resource JSON preserves the existing formatting; its parsed values and key order are identical to the live-tested data.
 
 The temporary local probe runs only from its settings buttons. Startup and opening or reopening settings do not start a scan. It records pre-lookup snapshots, separates native-export and stylesheet-only evidence, supports cancellation, and reports save failures. This diagnostic helper and its local evidence captures are not part of the production library change.
 
 ## Remaining work
 
-The latest accepted scan reports **41 unresolved aliases**. Some states have changed representation, while other legacy owners remain unproven. The next checkpoint will consolidate the entire remaining repair set. The full remaining-alias audit scope is preserved; changed state representations and unresolved owners do not count as repaired aliases.
+The reported public-alias repair set now has **0 unresolved aliases**. Conditional native UI states that were not exercised remain explicit validation limits. The scan also retains pre-lookup group snapshots: 23 historical groups have no public aliases, while 12 temporarily unavailable groups resolve their aliases through existing lazy suffixes. These snapshot counts do not represent 35 missing public aliases or verified native export identities.
+
+Future Discord revisions still require source and runtime comparison. Keep this temporary layer until equivalent upstream fixes are verified, then remove the corresponding fork changes.
 
 For every manual test, report:
 

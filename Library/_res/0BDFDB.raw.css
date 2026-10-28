@@ -1816,3 +1816,118 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 [REPLACE_CLASS_tooltipyellow] [REPLACE_CLASS_tooltippointer] {
 	border-top-color: var(--tooltip-pointer-bg);
 }
+
+/* Temporary frontend652418 compatibility utilities and owned markers. */
+/* PRIVATE styling utilities recovered from the pinned legacy native CSS.
+ * These rules preserve the public utility classes; they do not assert that
+ * current Discord components assign these classes themselves. */
+
+/* legacy-native/639826.js maps imageContainer -> imageContainer_ea60f4.
+ * Captured shared CSS gives this sizing/alignment contract. */
+.bdfdb-compat-menuimagecontainer {
+    flex: 0 0 auto;
+    max-height: 18px;
+    margin-left: 8px;
+}
+
+/* legacy-native/662721.js maps icon -> icon__7aa04. */
+.bdfdb-compat-unreadbaricon {
+    display: block;
+    color: var(--white-500);
+    margin-left: 2px;
+    width: 12px;
+    height: 12px;
+}
+
+/* legacy-native/422300.js maps ring -> ring__349e5. Keep the neutral ring
+ * geometry; the separate native active-state border is not implied here. */
+.bdfdb-compat-guildfavoritesring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+/* legacy-native/350583.js maps each fontSize*Padding token. The two live
+ * editor classes own their dynamic padding and are explicitly excluded. */
+.bdfdb-compat-textareafontsize12padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+.bdfdb-compat-textareafontsize14padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 13px;
+    padding-bottom: 12px;
+}
+.bdfdb-compat-textareafontsize15padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+.bdfdb-compat-textareafontsize16padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 11px;
+    padding-bottom: 11px;
+}
+.bdfdb-compat-textareafontsize18padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+.bdfdb-compat-textareafontsize20padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 8px;
+    padding-bottom: 9px;
+}
+.bdfdb-compat-textareafontsize24padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
+    padding-top: 5px;
+    padding-bottom: 6px;
+}
+
+/* PRIVATE candidate: current native solo-emoji sizing from the pinned profile
+ * status stylesheet. This makes the public class usable as a styling utility,
+ * as well as a marker on the native emoji. State changes must remove the marker.
+ * Source: 82171.3438527a5e2816c3.css, statusEmoji_ab8609:not(:has(~.statusText_ab8609)). */
+.bdfdb-compat-status-solo-emoji {
+    max-height: 32px;
+    max-width: 32px;
+    min-height: 32px;
+    min-width: 32px;
+}
+
+/* Native777003 applied this utility only for an explicit lastSection prop.
+ * It is not a selector for whichever DOM section happens to be last. */
+.bdfdb-compat-profile-last-section {
+    padding-bottom: var(--space-12, 12px);
+}
+
+/* The native clickable avatar already supplies its hover dimming. Add only
+ * the legacy non-interactive text overlay, with no extra dark background. */
+.bdfdb-compat-avatar-hint {
+    display: block;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+}
+.user-profile-popout .bdfdb-compat-avatar-wrapper-normal:hover > .bdfdb-compat-avatar-hint,
+.user-profile-popout .bdfdb-compat-avatar-wrapper-normal:focus-within > .bdfdb-compat-avatar-hint {
+    opacity: 1;
+}
+.bdfdb-compat-avatar-hint-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Private compatibility utility copies: exact captured Discord CSS rules. */
+/* Source: 962953.64344fbf982477be.css; SHA-256: a29ae4869cf70278496c222bd163fee12139f894d149442d54ecce15f5a199b0 */
+.inlineContainer__74017 .accessoryBar__74017{align-items:center;border-top:none;box-sizing:border-box;height:var(--custom-channel-textarea-text-area-height)}
+
+/* Source: 830171.7b749dea13d32e75.css; SHA-256: 1ab9fc86218524aac0003f008044e3bc3346f7f38eae35828b849f033edac173 */
+.clickableGameWrapper__5dec7{cursor:pointer;flex-grow:1;padding:var(--space-4)}

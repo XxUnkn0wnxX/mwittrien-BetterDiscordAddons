@@ -13,9 +13,1588 @@
  */
 
 module.exports = (_ => {
+    // Preserve chosen native component identities across library reevaluation.
+    const compatibilitySlot = Symbol.for("BDFDB.ClassCompatibility.v1");
+    const compatibilityEvaluationSlot = Symbol.for("BDFDB.ClassCompatibility.evaluation");
+    const compatibilityEvaluation = {};
+    window[compatibilityEvaluationSlot] = compatibilityEvaluation;
+    if (window[compatibilitySlot]) window[compatibilitySlot].detach();
+    let compatibilityFrameActive = true;
+
 	if (window.BDFDB_Global && window.BDFDB_Global.PluginUtils && typeof window.BDFDB_Global.PluginUtils.cleanUp == "function") window.BDFDB_Global.PluginUtils.cleanUp(window.BDFDB_Global);
 	
 	const fs = require("fs"), path = require("path");
+	// Temporary frontend652418 compatibility; public class aliases are preserved.
+	const BDFDBCompatTokens = {
+	"backdropwithlayer": "bdfdb-compat-backdrop-with-layer",
+	"cardeditable": "bdfdb-compat-cardeditable",
+	"textareaaccessorybar": "accessoryBar__74017",
+	"textareafontsize12padding": "bdfdb-compat-textareafontsize12padding",
+	"textareafontsize14padding": "bdfdb-compat-textareafontsize14padding",
+	"textareafontsize15padding": "bdfdb-compat-textareafontsize15padding",
+	"textareafontsize16padding": "bdfdb-compat-textareafontsize16padding",
+	"textareafontsize18padding": "bdfdb-compat-textareafontsize18padding",
+	"textareafontsize20padding": "bdfdb-compat-textareafontsize20padding",
+	"textareafontsize24padding": "bdfdb-compat-textareafontsize24padding",
+	"userpopoutcustomstatussoloemoji": "bdfdb-compat-status-solo-emoji",
+	"dmaddpopout": "bdfdb-compat-dmaddpopout",
+	"filedownloadbutton": "bdfdb-compat-filedownloadbutton",
+	"goliveclickablegamewrapper": "clickableGameWrapper__5dec7",
+	"guildfavoritesring": "bdfdb-compat-guildfavoritesring",
+	"guildheaderbutton": "bdfdb-compat-guildheaderbutton",
+	"guildheaderbuttonopen": "bdfdb-compat-guildheaderbuttonopen",
+	"modalminitext": "bdfdb-compat-modalminitext",
+	"livetagsmall": "bdfdb-compat-livetagsmall",
+	"menuimagecontainer": "bdfdb-compat-menuimagecontainer",
+	"messagemarkuptimestamptooltip": "timestampTooltip__75297",
+	"messageswelcomelocked": "bdfdb-compat-messageswelcomelocked",
+	"messageswelcomebutton": "bdfdb-compat-messageswelcomebutton",
+	"messageswelcomebuttonicon": "bdfdb-compat-messageswelcomebuttonicon",
+	"modallayerhidden": "bdfdb-compat-modallayerhidden",
+	"modallayerbackdropwithlayer": "bdfdb-compat-backdrop-with-layer",
+	"quickmessage": "bdfdb-compat-quickmessage",
+	"recentmentionsdmicon": "bdfdb-compat-recentmentionsdmicon",
+	"unreadbaricon": "bdfdb-compat-unreadbaricon",
+	"userbannerpopout": "bdfdb-compat-banner-popout",
+	"userbannerpopoutpremium": "bdfdb-compat-banner-popout-premium",
+	"userbannermodal": "bdfdb-compat-banner-modal",
+	"userbannermodalpremium": "bdfdb-compat-banner-modal-premium",
+	"userpopoutavatarhint": "bdfdb-compat-avatar-hint",
+	"userpopoutavatarhintinner": "bdfdb-compat-avatar-hint-inner",
+	"userpopoutavatarpositionnormal": "bdfdb-compat-avatar-position-normal",
+	"userpopoutavatarwrappernonuserbot": "bdfdb-compat-avatar-wrapper-nonuser-bot",
+	"userpopoutavatarwrappernormal": "bdfdb-compat-avatar-wrapper-normal",
+	"userpopoutsectionlast": "bdfdb-compat-profile-last-section",
+	"voicedetailspingforeground": "bdfdb-compat-voicedetailspingforeground",
+	"uploadmodal": "bdfdb-compat-uploadmodal"
+};
+	const BDFDBCompatController = (() => {
+		// PRIVATE stable controller, owned by the renderer bridge rather than a BDFDB
+		// generation. Every discovery/transform remains restricted to listed owners.
+		function createClassCompatibility({Patcher, React, contracts, inspectCommitted, hostMarkers, hostProjections=[], hashSource, handlers:initialHandlers, context = {}}) {
+		    const caller = "BDFDBClassCompatibility";
+		    const invocationKey = "__BDFDBCompatInvocation";
+		    const adapters = new WeakMap(), composites = new WeakMap(), adapterTypes = new WeakSet(), matches = new WeakMap();
+		    const mountedFunctions = new Set(), classRecords = new Set(), instances = new WeakMap(), classTypes = new Map();
+		    const commitCallbacks = new WeakMap();
+		    const instanceEffects = new WeakMap();
+		    const ownLifecycles = new WeakMap();
+		    const targetRecords = new WeakMap(), permanentCancels = new Set();
+		    const shared = context.shared || Object.create(null);
+		    const status = Object.fromEntries(contracts.map(c => [c.name,{matched:0,renders:0,deferred:0,sources:[],failures:[]}]));
+		    let deferredInTask=new WeakSet(),deferredClearQueued=false;
+		    const errors=[];
+		    let binding = null, active = false, generation = 0, bindingVersion=0, closed=false;
+
+		    function canonical(fn) {
+		        const seen = new Set();
+		        while (typeof fn === "function" && !seen.has(fn)) {
+		            seen.add(fn);
+		            const next = fn.__BDFDBClassCompatibilityOriginal || fn._originalFunction || fn.__originalFunction;
+		            if (typeof next !== "function") break;
+		            fn = next;
+		        }
+		        return fn;
+		    }
+		    function sourceOf(fn) { try { return String(canonical(fn)); } catch (_) { return ""; } }
+		    function failure(name,error) {
+		        const list = status[name]?.failures || errors;
+		        const message = error?.message || String(error);
+		        if (list && !list.includes(message) && list.length < 8) list.push(message);
+		    }
+		    function safe(name,fn,...args) { try { return fn?.(...args); } catch (error) { failure(name,error); } }
+		    function eachHandler(method) {
+		        for (const [name,handler] of Object.entries(binding?.handlers || {})) safe(name,handler[method]?.bind(handler));
+		    }
+		    function classify(fn) {
+		        if (typeof fn !== "function") return null;
+		        const original = canonical(fn);
+		        if (matches.has(original)) return matches.get(original);
+		        const text = sourceOf(original), isClass = typeof original.prototype?.render === "function";
+		        const found = contracts.filter(c => (!c.kind || (c.kind === "class") === isClass) &&
+		            (c.minLength == null || text.length >= c.minLength) && (c.maxLength == null || text.length <= c.maxLength) &&
+		            c.strings.every(s => text.includes(s)) && !(c.nonStrings || []).some(s => text.includes(s)));
+		        const result = found.length === 1 ? found[0] : null;
+		        matches.set(original,result);
+		        if (result) {
+		            status[result.name].matched++;
+		            status[result.name].sources.push({length:text.length,sha256:hashSource?.(text) || null});
+		        }
+		        return result;
+		    }
+		    function eventFor(props,instance,result,args) {
+		        const expected = generation;
+		        return {props,instance,returnValue:result,methodArguments:args,generation,
+		            isActive:()=>active && !!binding && generation===expected};
+		    }
+		    function projectTree(value) {
+		        if (!hostMarkers) return value;
+		        if (Array.isArray(value)) {
+		            let changed=false; const result=value.map(child=>{const next=projectTree(child);changed ||= next!==child;return next;});
+		            return changed?result:value;
+		        }
+		        if (!React.isValidElement(value)) return value;
+		        let result=value;
+		        const children=projectTree(value.props.children);
+		        if (children!==value.props.children) result=React.cloneElement(value,{children});
+		        for(const projection of hostProjections)result=projection.project(result);
+		        return hostMarkers.project(result);
+		    }
+		    function after(contract,event) {
+		        if (!active || !binding) return projectTree(event.returnValue);
+		        status[contract.name].renders++;
+		        const next=safe(contract.name,binding.handlers[contract.name]?.after,event);
+		        return projectTree(next===undefined?event.returnValue:next);
+		    }
+		    function patch(object,method,callbacks,{lifetime,create=false,always=false,name=""}={}) {
+		        if (!object || (!create && typeof object[method]!=="function")) return false;
+		        let records=targetRecords.get(object);
+		        if (!records) targetRecords.set(object,records=new Map());
+		        if (records.has(method)) return true;
+		        const ownDescriptor=Object.getOwnPropertyDescriptor(object,method), inherited=object[method];
+		        if (typeof inherited!=="function") object[method]=function BDFDBCompatibilityLifecycle() {};
+		        const local=[], installedCallbacks=[];
+		        try {
+		            for (const phase of ["before","instead","after"]) if (callbacks[phase]) {
+		                const callback=(instance,args,result)=>{
+		                    if (!always && (!active || !binding)) return;
+		                    return callbacks[phase]({instance,methodArguments:args,returnValue:phase==="instead"?undefined:result,
+		                        callOriginal:phase==="instead"?()=>Reflect.apply(result,instance,args):undefined});
+		                };
+		                const cancel=Patcher[phase](caller,object,method,callback);
+		                if (typeof cancel!=="function") throw Error("Patch did not install: "+method);
+		                local.push(cancel);installedCallbacks.push(callback);
+		            }
+		            // Public Patcher exposes the actual installed child patches. A
+		            // returned cancellation alone is not installation evidence.
+		            if (typeof Patcher.getPatchesByCaller==="function" && !installedCallbacks.every(callback=>Patcher.getPatchesByCaller(caller).some(p=>p.callback===callback))) {
+		                throw Error("Patcher registry did not contain installed callback: "+method);
+		            }
+		        }
+		        catch (error) {
+		            for (const cancel of local.reverse()) safe(name,cancel);
+		            if (!ownDescriptor && typeof inherited!=="function") delete object[method];
+		            failure(name,error);return false;
+		        }
+		        const collection=lifetime || permanentCancels;
+		        let cancelled=false;
+		        const cancel=()=>{
+		            if (cancelled) return;cancelled=true;
+		            for (const stop of local.reverse()) safe(name,stop);
+		            records.delete(method);collection.delete(cancel);
+		            // Only remove a synthetic method if no other caller owns it now.
+		            if (!ownDescriptor && typeof inherited!=="function" && !object[method]?.__originalFunction && !object[method]?.BDFDB_Patches) delete object[method];
+		        };
+		        records.set(method,cancel);collection.add(cancel);return true;
+		    }
+		    function ownerContract(type) {
+		        if (typeof type==="function") return classify(type);
+		        if (type?.$$typeof===Symbol.for("react.memo")) return ownerContract(type.type);
+		        if (type?.$$typeof===Symbol.for("react.forward_ref")) return ownerContract(type.render);
+		        return null;
+		    }
+		    function ensureRecord(instance,type,contract,committed=false) {
+		        let record=instances.get(instance);
+		        if (!record) {
+		            record={instance:new WeakRef(instance),type,contract,committed,rendering:false};
+		            instances.set(instance,record);classRecords.add(record);
+		            const entries=[];
+		            for (const method of ["componentDidMount","componentDidUpdate","componentWillUnmount"]) {
+		                if (!Object.hasOwn(instance,method) || typeof instance[method]!=="function") continue;
+		                const descriptor=Object.getOwnPropertyDescriptor(instance,method),original=instance[method];
+		                const entry={enabled:true,cancel:null};
+		                function BDFDBCompatibilityOwnLifecycle(...args) {
+		                    if (entry.enabled && method==="componentWillUnmount") releaseInstance(this);
+		                    const result=Reflect.apply(original,this,args);
+		                    if (entry.enabled && method!=="componentWillUnmount") committedOwner(this);
+		                    return result;
+		                }
+		                Object.defineProperties(BDFDBCompatibilityOwnLifecycle,{__originalFunction:{value:original},toString:{value:()=>String(original)}});
+		                instance[method]=BDFDBCompatibilityOwnLifecycle;
+		                entry.cancel=()=>{entry.enabled=false;if(instance[method]===BDFDBCompatibilityOwnLifecycle)Object.defineProperty(instance,method,descriptor);};
+		                entries.push(entry);
+		            }
+		            ownLifecycles.set(instance,entries);
+		        }
+		        if (committed) record.committed=true;
+		        return record;
+		    }
+		    function committedOwner(instance) {
+		        const record=instances.get(instance);
+		        if (!record) return;
+		        record.committed=true;
+		        if (active) for (const callback of commitCallbacks.get(instance)?.values() || []) safe(record.contract.name,callback);
+		    }
+		    function releaseInstance(instance) {
+		        const record=instances.get(instance);
+		        if (!record) return;
+		        safe(record.contract.name,binding?.handlers[record.contract.name]?.unmount,instance);
+		        for (const entry of instanceEffects.get(instance)?.values() || []) entry.cancel();
+		        instanceEffects.delete(instance);
+		        for (const entry of ownLifecycles.get(instance) || []) entry.cancel();
+		        ownLifecycles.delete(instance);
+		        commitCallbacks.delete(instance);record.committed=false;
+		        classRecords.delete(record);instances.delete(instance);
+		    }
+		    function currentClassInstances() {
+		        const live=[];
+		        for (const record of classRecords) {
+		            const instance=record.instance.deref();
+		            if (!instance) { classRecords.delete(record);continue; }
+		            if (record.committed) live.push(instance);
+		        }
+		        return live;
+		    }
+		    function patchMethod(object,method,callbacks) {
+		        const record=instances.get(object);
+		        if (!record) throw Error("Instance effects require an owned class lifecycle");
+		        if (!record.rendering) throw Error("Instance field attachment is restricted to its render lifetime");
+		        if (typeof object[method]!=="function") return false;
+		        let methods=instanceEffects.get(object);
+		        if (!methods) instanceEffects.set(object,methods=new Map());
+		        const previous=methods.get(method);
+		        if (previous?.generation===generation) return true;
+		        previous?.cancel();
+		        const descriptor=Object.getOwnPropertyDescriptor(object,method), original=object[method];
+		        const entry={enabled:true,callbacks,generation,cancel:null};
+		        function BDFDBCompatibilityInstanceField(...args) {
+		            const event={instance:this,methodArguments:args,returnValue:undefined};
+		            if (entry.enabled && active && entry.generation===generation) safe(record.contract.name,entry.callbacks?.before,event);
+		            event.returnValue=Reflect.apply(original,this,event.methodArguments);
+		            if (entry.enabled && active && entry.generation===generation) {
+		                const result=safe(record.contract.name,entry.callbacks?.after,event);
+		                if (result!==undefined) event.returnValue=result;
+		            }
+		            return projectTree(event.returnValue);
+		        }
+		        copyStatics(BDFDBCompatibilityInstanceField,original);
+		        Object.defineProperties(BDFDBCompatibilityInstanceField,{
+		            __originalFunction:{value:original},toString:{value:()=>String(original)}
+		        });
+		        object[method]=BDFDBCompatibilityInstanceField;
+		        entry.cancel=()=>{
+		            entry.enabled=false;entry.callbacks=null;
+		            // Preserve any wrapper another caller installed after this one.
+		            if (object[method]===BDFDBCompatibilityInstanceField) {
+		                if (descriptor) Object.defineProperty(object,method,descriptor);
+		                else delete object[method];
+		            }
+		            methods.delete(method);
+		        };
+		        methods.set(method,entry);
+		        // The only ownership link to this ephemeral target is a WeakMap key.
+		        // Unlike a BdApi.Patcher registry entry, an aborted owner is collectable.
+		        return true;
+		    }
+		    function attachInstanceCommit(instance,callback) {
+		        const record=instances.get(instance);
+		        if (!record) return false;
+		        let callbacks=commitCallbacks.get(instance);
+		        if (!callbacks) commitCallbacks.set(instance,callbacks=new Map());
+		        callbacks.set(record.contract.name,callback);
+		        return true;
+		    }
+		    function refreshOwner(name) {
+		        if (!active) return;
+		        for (const instance of currentClassInstances()) if (instances.get(instance)?.contract.name===name) safe(name,()=>instance.forceUpdate());
+		    }
+		    const tools={React,shared,patchMethod,attachInstanceCommit,refreshOwner,isActive:()=>active && !!binding,
+		        trackUpdate:update=>{mountedFunctions.add(update);return()=>mountedFunctions.delete(update);},
+		        isOwnerType:(type,name)=>ownerContract(type)?.name===name};
+		    function classOwner(type,contract) {
+		        if (classTypes.has(type)) return;
+		        if (typeof WeakRef!=="function") {failure(contract.name,"WeakRef unavailable");return;}
+		        classTypes.set(type,contract);
+		        const prototype=type.prototype;
+		        // Install lifecycle tracking before React constructs/renders a new
+		        // instance. Tracking remains installed while effects are stopped.
+		        patch(prototype,"componentDidMount",{after:e=>committedOwner(e.instance)},{create:true,always:true,name:contract.name});
+		        patch(prototype,"componentDidUpdate",{after:e=>committedOwner(e.instance)},{create:true,always:true,name:contract.name});
+		        patch(prototype,"componentWillUnmount",{before:e=>releaseInstance(e.instance)},{create:true,always:true,name:contract.name});
+		        patch(prototype,"render",{
+		            before(e) {
+		                const record=ensureRecord(e.instance,type,contract);record.rendering=true;
+		                if (active) safe(contract.name,binding?.handlers[contract.name]?.before,eventFor(e.instance.props,e.instance,undefined,e.methodArguments));
+		            },
+		            after(e) {
+		                const record=instances.get(e.instance);
+		                try {return after(contract,eventFor(e.instance.props,e.instance,e.returnValue,e.methodArguments));}
+		                finally {if (record) record.rendering=false;}
+		            }
+		        },{always:true,name:contract.name});
+		        // Existing committed owners do not run componentDidMount again.
+		        const inventory=inspectCommitted?.();
+		        if (inventory?.complete) for (const reference of inventory.instances || []) {
+		            const instance=typeof reference?.deref==="function"?reference.deref():reference;
+		            if (instance instanceof type) ensureRecord(instance,type,contract,true);
+		        }
+		    }
+		    function nativeProps(props) {
+		        if (!props || !Object.prototype.hasOwnProperty.call(props,invocationKey)) return props;
+		        const tag=props[invocationKey], keys=Object.keys(props).filter(k=>k!==invocationKey);
+		        const original=tag.props;
+		        if (keys.length===Object.keys(original).length && keys.every(k=>Object.is(props[k],original[k]))) return original;
+		        const result={...props};delete result[invocationKey];return result;
+		    }
+		    function copyStatics(target,original,skip=[]) {
+		        for (const key of Reflect.ownKeys(original)) {
+		            if (["length","name","prototype","caller","arguments","toString","_originalFunction","__originalFunction","__BDFDBClassCompatibilityOriginal",...skip].includes(key)) continue;
+		            try {Object.defineProperty(target,key,Object.getOwnPropertyDescriptor(original,key));} catch (_) {}
+		        }
+		    }
+		    function functionOwner(original,contract) {
+		        original=canonical(original);
+		        if (adapters.has(original)) return adapters.get(original);
+		        const handler=binding?.handlers[contract.name];
+		        if (!handler) return null;
+		        const schema=handler.hookSchema || "none";
+		        const record={original,contract,schema,hooks:handler.hooks};
+		        function BDFDBCompatibilityOwner(...args) {
+		            const [,update]=React.useReducer(n=>n+1,0);
+		            React.useLayoutEffect(()=>{mountedFunctions.add(update);return()=>mountedFunctions.delete(update);},[]);
+		            // Never substitute a new conditional hook sequence on rebinding.
+		            const hookContext=record.hooks?.();
+		            const tag=args[0]?.[invocationKey];
+		            const forwarded=[...args];forwarded[0]=nativeProps(args[0]);
+		            const invoke=tag?.bindingVersion===bindingVersion?tag.invoke:original;
+		            const result=Reflect.apply(invoke,this,forwarded);
+		            const current=binding?.handlers[contract.name];
+		            if (!active || !current || (current.hookSchema || "none")!==schema) return projectTree(result);
+		            const event=eventFor(forwarded[0],null,result,forwarded);event.hookContext=hookContext;
+		            return after(contract,event);
+		        }
+		        Object.defineProperties(BDFDBCompatibilityOwner,{
+		            _originalFunction:{value:original},__BDFDBClassCompatibilityOriginal:{value:original},
+		            toString:{value:()=>sourceOf(original)},name:{value:original.name,configurable:true},length:{value:original.length,configurable:true}
+		        });
+		        copyStatics(BDFDBCompatibilityOwner,original);
+		        adapters.set(original,BDFDBCompatibilityOwner);adapterTypes.add(BDFDBCompatibilityOwner);return BDFDBCompatibilityOwner;
+		    }
+		    function replaceElement(element,type,props=element.props) {
+		        // Preserve the actual element's descriptors/ref/key/owner without
+		        // calling a factory a second time (other plugins may patch factories).
+		        const descriptors=Object.getOwnPropertyDescriptors(element);
+		        descriptors.type={...descriptors.type,value:type};descriptors.props={...descriptors.props,value:props};
+		        const result=Object.create(Object.getPrototypeOf(element),descriptors);
+		        return Object.isFrozen(element)?Object.freeze(result):result;
+		    }
+		    function shallowEqual(a,b) {return Object.is(a,b) || a && b && Object.keys(a).length===Object.keys(b).length && Object.keys(a).every(k=>Object.hasOwn(b,k)&&Object.is(a[k],b[k]));}
+		    function projectedType(type,contract) {
+		        if (typeof type==="function") return functionOwner(type,contract);
+		        if (composites.has(type)) return composites.get(type);
+		        let next;
+		        if (type.$$typeof===Symbol.for("react.memo")) {
+		            const inner=projectedType(type.type,contract);
+		            if (!inner) return null;
+		            const compare=(a,b)=>{
+		                if(a?.[invocationKey]?.bindingVersion!==b?.[invocationKey]?.bindingVersion)return false;
+		                const nativeCompare=type.compare;
+		                return nativeCompare?Reflect.apply(nativeCompare,undefined,[nativeProps(a),nativeProps(b)]):shallowEqual(nativeProps(a),nativeProps(b));
+		            };
+		            next=React.memo(inner,compare);copyStatics(next,type,["$$typeof","type","compare","displayName"]);
+		        }
+		        else if (type.$$typeof===Symbol.for("react.forward_ref")) {
+		            const inner=functionOwner(type.render,contract);
+		            if (!inner) return null;
+		            next=React.forwardRef(inner);copyStatics(next,type,["$$typeof","render","displayName"]);
+		        }
+		        if (!next) return null;
+		        Object.defineProperty(next,"__BDFDBClassCompatibilityOriginal",{value:type});
+		        if (type.displayName) next.displayName=type.displayName;
+		        composites.set(type,next);adapterTypes.add(next);return next;
+		    }
+		    function invocation(type) {
+		        while (type?.$$typeof===Symbol.for("react.memo")) type=type.type;
+		        return type?.$$typeof===Symbol.for("react.forward_ref")?type.render:type;
+		    }
+		    function onElement(element) {
+		        if (closed || !React.isValidElement(element)) return element;
+		        if (typeof element.type==="string") {
+		            for(const projection of hostProjections)element=projection.project(element);
+		            return hostMarkers?.project(element) || element;
+		        }
+		        if (containsAdapter(element.type)) return element;
+		        const contract=ownerContract(element.type);
+		        if (!contract) return element;
+		        if(binding && !binding.handlers[contract.name] && typeof binding.prepareOwner==="function") {
+		            const handler=safe(contract.name,binding.prepareOwner,contract.name);
+		            if(handler) {
+		                binding.handlers[contract.name]=handler;
+		                safe(contract.name,handler.connect?.bind(handler),tools);
+		                if(active)safe(contract.name,handler.start?.bind(handler));
+		            }
+		        }
+		        const fn=invocation(element.type);
+		        if (typeof fn?.prototype?.render==="function") {
+		            if (binding) classOwner(fn,contract);
+		            return element;
+		        }
+		        if (contract.adapter==="props") {
+		            if (!binding) return element;
+		            const next=safe(contract.name,binding?.handlers[contract.name]?.element,eventFor(element.props,null,element,[element.props]));
+		            return next===undefined?element:next;
+		        }
+		        if (contract.adapter!=="function" || Object.hasOwn(element.props,invocationKey)) return element;
+		        const existing=adapters.has(canonical(fn)) || composites.has(element.type);
+		        if (!existing) {
+		            if (!active || !binding?.handlers[contract.name]) return element;
+		            if(deferredInTask.has(canonical(fn))){status[contract.name].deferred++;return element;}
+		            const inventory=inspectCommitted?.();
+		            if (!inventory?.complete || inventory.types.has(element.type) || inventory.types.has(fn) || inventory.types.has(canonical(fn))) {
+		                status[contract.name].lastDeferral={reason:inventory?.reason || "mounted-original",complete:!!inventory?.complete,
+		                    elementTypePresent:!!inventory?.types?.has(element.type),invocationPresent:!!inventory?.types?.has(fn),originalPresent:!!inventory?.types?.has(canonical(fn))};
+		                status[contract.name].deferred++;deferredInTask.add(canonical(fn));
+		                if(!deferredClearQueued){deferredClearQueued=true;queueMicrotask(()=>{deferredInTask=new WeakSet();deferredClearQueued=false;});}
+		                return element;
+		            }
+		        }
+		        const type=projectedType(element.type,contract);
+		        if (!type) return element;
+		        const props={...element.props,[invocationKey]:{invoke:fn,props:element.props,bindingVersion}};
+		        if (Object.isFrozen(element.props)) Object.freeze(props);
+		        return replaceElement(element,type,props);
+		    }
+		    function containsAdapter(type,seen=new Set()) {
+		        if (!type || seen.has(type)) return false;
+		        if (adapterTypes.has(type)) return true;
+		        seen.add(type);
+		        if (typeof type==="function") return containsAdapter(type.__originalFunction || type._originalFunction,seen);
+		        if (type.$$typeof===Symbol.for("react.memo")) return containsAdapter(type.type,seen);
+		        if (type.$$typeof===Symbol.for("react.forward_ref")) return containsAdapter(type.render,seen);
+		        return false;
+		    }
+		    function regenerate() {
+		        for (const update of [...mountedFunctions]) safe("",update);
+		        for (const instance of currentClassInstances()) safe(instances.get(instance).contract.name,()=>instance.forceUpdate());
+		    }
+		    function stop() {
+		        if (!active) return;
+		        active=false;generation++;
+		        for (const record of classRecords) {
+		            const instance=record.instance.deref();if(instance) {
+		                for (const entry of instanceEffects.get(instance)?.values() || []) entry.cancel();
+		                commitCallbacks.delete(instance);
+		            }
+		        }
+		        eachHandler("stop");for(const projection of hostProjections)safe("",projection.stop?.bind(projection));hostMarkers?.clean();regenerate();
+		    }
+		    function start() {
+		        if (active || !binding) return;
+		        active=true;generation++;eachHandler("start");for(const projection of hostProjections)safe("",projection.start?.bind(projection));regenerate();
+		    }
+		    function detach() {stop();binding=null;generation++;bindingVersion++;}
+		    function bind(next) {
+		        if (closed) throw Error("Compatibility controller is closed");
+		        detach();
+		        if (!next?.handlers) throw Error("Compatibility handlers are not ready");
+		        binding=next;
+		        for (const [name,handler] of Object.entries(next.handlers)) safe(name,handler.connect?.bind(handler),tools);
+		        start();
+		    }
+		    function close() {
+		        if (closed) return;
+		        detach();closed=true;
+		        for (const record of [...classRecords]) {const instance=record.instance.deref();if(instance)releaseInstance(instance);}
+		        for (const cancel of [...permanentCancels]) cancel();
+		        classRecords.clear();classTypes.clear();mountedFunctions.clear();
+		    }
+		    if (initialHandlers) bind({handlers:initialHandlers});
+		    return {onElement,bind,detach,start,stop,close,shared,isActive:()=>active && !!binding,
+		        getStatus:()=>({active,bound:!!binding,generation,bindingVersion,closed,owners:JSON.parse(JSON.stringify(status)),
+		            errors:[...errors],
+		            bindings:binding?.getDiagnostics?.() || null,
+		            hostProjections:hostProjections.map(projection=>projection.getStatus()),
+		            mountedFunctions:mountedFunctions.size,mountedClasses:currentClassInstances().length,
+		            instancePatches:[...classRecords].reduce((n,r)=>n+(instanceEffects.get(r.instance.deref())?.size || 0),0),host:hostMarkers?.getStatus() || null})};
+		}
+		return {createClassCompatibility};
+	})();
+
+	const BDFDBCompatBridge = (() => {
+		// PRIVATE candidate. Owns only the renderer factories BDFDB already patches.
+		// No module discovery, lazy loading or additional global interception target.
+		function createRendererBridge({Patcher, controller, targets, onError = () => {}}) {
+		    const caller = "BDFDBClassCompatibilityRenderer";
+		    const installed = [], failures = [];
+		    let binding = null, serial = 0, closed = false, coverageHealthy=true;
+		    function report(error) {
+		        const message = error?.message || String(error);
+		        if (!failures.includes(message) && failures.length < 8) failures.push(message);
+		        try { onError(error); } catch (_) {}
+		    }
+		    function run(phase, event) {
+		        const current = binding;
+		        if (!current) return;
+		        try {
+		            const result = current.legacy?.[phase]?.(event);
+		            if (phase === "after" && result !== undefined) event.returnValue = result;
+		        }
+		        catch (error) { report(error); }
+		    }
+		    function addTargets(next) {
+		        for (const {object, method} of next) {
+		            if(installed.some(x => x.object === object && x.method === method))continue;
+		            if (!object || typeof object[method] !== "function") {coverageHealthy=false;report(Error("Required factory is unavailable: "+method));continue;}
+		            const record = {object, method, cancels: []};
+		            try {
+		                record.cancels.push(Patcher.before(caller, object, method, (instance, args) => {
+		                    run("before", {component:object, instance, methodArguments:args, originalMethodName:method});
+		                }));
+		                record.cancels.push(Patcher.after(caller, object, method, (instance, args, result) => {
+		                    const event = {component:object, instance, methodArguments:args, returnValue:result, originalMethodName:method};
+		                    run("after", event);
+		                    try { return controller.onElement(event.returnValue); }
+		                    catch (error) { report(error); return event.returnValue; }
+		                }));
+		                if (record.cancels.some(cancel => typeof cancel !== "function")) throw Error("Renderer factory patch did not install: " + method);
+		                installed.push(record);
+		            }
+		            catch (error) {
+		                for (const cancel of record.cancels.reverse()) try { cancel?.(); } catch (e) { report(e); }
+		                coverageHealthy=false;
+		                report(error);
+		            }
+		        }
+		    }
+		    addTargets(targets);
+		    function bindLegacy({legacy,targets:nextTargets=[]}) {
+		        if(closed)throw Error("Renderer bridge is closed");
+		        controller.detach();
+		        const generation=++serial;
+		        addTargets(nextTargets);
+		        binding={generation,legacy};
+		        return generation;
+		    }
+		    function activateCompatibility(generation,compatibility) {
+		        if(closed || binding?.generation!==generation)throw Error("Compatibility activation belongs to an outdated generation");
+		        if(!coverageHealthy)throw Error("Required renderer factory coverage is incomplete");
+		        try {controller.bind(compatibility);}
+		        catch(error){controller.detach();report(error);throw error;}
+		    }
+		    return {
+		        controller,
+		        bindLegacy,
+		        activateCompatibility,
+		        bind({legacy, compatibility, targets:nextTargets = []}) {
+		            const generation=bindLegacy({legacy,targets:nextTargets});
+		            activateCompatibility(generation,compatibility);
+		            return generation;
+		        },
+		        detach(generation) {
+		            if (generation != null && binding?.generation !== generation) return false;
+		            binding = null;
+		            controller.detach();
+		            return true;
+		        },
+		        start(generation) { if (binding?.generation === generation) controller.start(); },
+		        stop(generation) { if (binding?.generation === generation) controller.stop(); },
+		        close() {
+		            if (closed) return;
+		            binding = null;
+		            try {controller.close();}
+		            finally {
+		                closed = true;
+		                for (const entry of installed.splice(0)) for (const cancel of entry.cancels.reverse()) try { cancel(); } catch (error) { report(error); }
+		            }
+		        },
+		        getStatus: () => ({generation:binding?.generation ?? null, bound:!!binding, closed,coverageHealthy,
+		            factoryTargets:installed.length, physicalPatches:installed.reduce((n,x) => n+x.cancels.length,0), failures:[...failures]})
+		    };
+		}
+		return {createRendererBridge};
+	})();
+
+	const BDFDBCompatInspector = (() => {
+		// Event-driven, read-only inventory of committed roots in this renderer's
+		// document. No props/state contents, lazy initialization or fiber mutation.
+		function createCommittedInspector({document, now=()=>performance.now(), maxNodes=30000, maxMilliseconds=35}) {
+		    let last={complete:false,reason:"not-requested",roots:0,nodes:0,milliseconds:0};
+		    function inspect() {
+		        const start=now(), roots=new Set(), types=new Set(), instances=[];
+		        let nodes=0, reason=null;
+		        const expired=()=>++nodes>maxNodes || (nodes%128===0 && now()-start>maxMilliseconds);
+		        function recordType(value,seen=new Set()) {
+		            if (!value || seen.has(value)) return;
+		            if (typeof value!=="function" && typeof value!=="object") return;
+		            seen.add(value);types.add(value);
+		            if (typeof value==="function") recordType(value.__BDFDBClassCompatibilityOriginal || value._originalFunction || value.__originalFunction,seen);
+		            else if (value.$$typeof===Symbol.for("react.memo")) recordType(value.type,seen);
+		            else if (value.$$typeof===Symbol.for("react.forward_ref")) recordType(value.render,seen);
+		        }
+		        try {
+		            const walker=document.createTreeWalker(document,1);
+		            let container=document;
+		            do {
+		                if (expired()) {reason="document-root-inventory-limit";break;}
+		                for (const key of Object.keys(container)) if (key.startsWith("__reactContainer$") || key==="_reactRootContainer") {
+		                    const value=container[key];
+		                    if(value==null)continue; // React clears this marker on root unmount.
+		                    const root=value?._internalRoot || value?.stateNode || value;
+		                    if (root?.current?.tag===3) roots.add(root.current);
+		                    else if (value?.tag===3 && value.stateNode?.current) roots.add(value.stateNode.current);
+		                    else reason="unrecognized-react-root";
+		                }
+		            }while((container=walker.nextNode()));
+		            if (!roots.size && !reason) reason="no-covered-react-root";
+		            const seen=new Set(), stack=[...roots];
+		            while (!reason && stack.length) {
+		                const fiber=stack.pop();
+		                if (!fiber || seen.has(fiber)) continue;
+		                if (expired()) {reason="committed-fiber-inventory-limit";break;}
+		                seen.add(fiber);
+		                for (const value of [fiber.type,fiber.elementType]) recordType(value);
+		                if (fiber.tag===1 && fiber.stateNode && typeof WeakRef==="function") instances.push(new WeakRef(fiber.stateNode));
+		                if (fiber.sibling) stack.push(fiber.sibling);
+		                if (fiber.child) stack.push(fiber.child);
+		            }
+		        }
+		        catch (_) {reason="committed-inventory-unavailable";}
+		        last={complete:!reason,reason,coverage:"connected document roots and their linked portals",roots:roots.size,nodes,milliseconds:now()-start};
+		        return {...last,types,instances};
+		    }
+		    return {inspect,getStatus:()=>({...last})};
+		}
+		return {createCommittedInspector};
+	})();
+
+	const BDFDBCompatHosts = (() => {
+		// Private host-element marker helper. It only observes committed nodes through
+		// React refs supplied on explicitly selected host elements.
+		function createHostMarkers({React, ownedTokens, isActive}) {
+		    const tokens = new Set(ownedTokens);
+		    const callbacksByNativeRef = new WeakMap();
+		    const composedCallbacks = new WeakMap();
+		    const records = new Map();
+		    let projected = 0, cleaned = 0;
+		    const sharedNoRefCallback = node => commit(node, null);
+		    composedCallbacks.set(sharedNoRefCallback, null);
+
+		    function classes(value) {
+		        return typeof value === "string" ? value.split(/\s+/).filter(Boolean) : [];
+		    }
+		    function removeOwned(value) {
+		        return classes(value).filter(token => !tokens.has(token)).join(" ");
+		    }
+		    function release(node, nativeRef, nativeCleanup, invokeNull) {
+		        try {
+		            if (nativeCleanup) nativeCleanup();
+		            else if (invokeNull && typeof nativeRef === "function") nativeRef(null);
+		            else if (invokeNull && nativeRef && typeof nativeRef === "object") nativeRef.current = null;
+		        }
+		        finally {
+		            const record = records.get(node);
+		            if (record) {
+		                for (const token of tokens) node.classList.remove(token);
+		                records.delete(node);
+		                cleaned++;
+		            }
+		        }
+		    }
+		    function commit(node, nativeRef) {
+		        if (!node) return undefined;
+		        // Ref attachment is React's commit evidence. Detached roots still need
+		        // their native ref and can be inserted into the document afterwards.
+		        if (node.classList) records.set(node, {tokens});
+		        let nativeCleanup;
+		        try {
+		            if (typeof nativeRef === "function") nativeCleanup = nativeRef(node);
+		            else if (nativeRef && typeof nativeRef === "object") nativeRef.current = node;
+		        }
+		        catch (error) {
+		            const record = records.get(node);
+		            if (record) { for (const token of tokens) node.classList.remove(token); records.delete(node); }
+		            throw error;
+		        }
+		        let done = false;
+		        return () => {
+		            if (done) return;
+		            done = true;
+		            release(node, nativeRef, typeof nativeCleanup === "function" ? nativeCleanup : null, true);
+		        };
+		    }
+		    function composedFor(nativeRef) {
+		        if (nativeRef == null) return sharedNoRefCallback;
+		        if (typeof nativeRef === "function" || (nativeRef && typeof nativeRef === "object")) {
+		            const known = callbacksByNativeRef.get(nativeRef);
+		            if (known) return known;
+		        }
+		        const callback = node => commit(node, nativeRef);
+		        composedCallbacks.set(callback, nativeRef);
+		        if (typeof nativeRef === "function" || (nativeRef && typeof nativeRef === "object")) callbacksByNativeRef.set(nativeRef, callback);
+		        return callback;
+		    }
+		    function project(element) {
+		        if (!React.isValidElement(element) || typeof element.type !== "string") return element;
+		        const oldRef = element.props.ref;
+		        const nativeRef = composedCallbacks.has(oldRef) ? composedCallbacks.get(oldRef) : oldRef;
+		        const originalClass = element.props.className;
+		        const owned = classes(originalClass).filter(token => tokens.has(token));
+		        // Keep an already composed native ref stable after removing a marker.
+		        // Merely stopping compatibility must not detach a native observer ref.
+		        const knownNativeRef = nativeRef != null && callbacksByNativeRef.has(nativeRef);
+		        if (!owned.length && !composedCallbacks.has(oldRef) && !knownNativeRef) return element;
+		        projected++;
+		        const nextClass = isActive() ? originalClass : removeOwned(originalClass);
+		        const nextRef = owned.length || composedCallbacks.has(oldRef) || knownNativeRef ? composedFor(nativeRef) : nativeRef;
+		        if (nextClass === originalClass && nextRef === oldRef) return element;
+		        return React.cloneElement(element, {className: nextClass, ref: nextRef});
+		    }
+		    function clean() {
+		        for (const [node, record] of records) {
+		            for (const token of tokens) node.classList.remove(token);
+		        }
+		        cleaned += records.size;
+		        // These are live ref attachments, released by their real unmount
+		        // cleanup. Retain them so another stop after restart cleans them too.
+		    }
+		    function getStatus() { return {trackedNodes: records.size, projected, cleaned}; }
+		    return {project, clean, getStatus};
+		}
+
+		return {createHostMarkers};
+	})();
+
+	const BDFDBCompatBackdrop = (() => {
+		// PRIVATE: current Scrim462824 -> Layer750506/80556 -> portal container365912.
+		// The committed parent establishes the old non-null LayerComponent predicate.
+		// No component type replacement, DOM polling or global element search.
+		function createBackdropRule({React,classFor,isActive}) {
+		    const refs=new WeakMap(),nullRefs=new Map(),ownedRefs=new WeakMap(),records=new Map();
+		    const token=classFor("backdropwithlayer");
+		    let source=null,assignments=0;
+		    const includes=(value,part)=>typeof value==="string" && value.split(/\s+/).includes(part);
+		    const eligible=node=>!!source && includes(node.className,source.scrimClass) && node.parentElement?.classList.contains(source.layerClass);
+		    function reconcile(node) {
+		        node.classList.remove(token);
+		        if(isActive() && eligible(node)) {
+		            node.classList.add(token);assignments++;
+		        }
+		    }
+		    function forRef(reference,stamp) {
+		        const hasNativeRef=reference && (typeof reference==="function" || typeof reference==="object");
+		        if(hasNativeRef && refs.has(reference))return refs.get(reference);
+		        if(!hasNativeRef && nullRefs.has(stamp))return nullRefs.get(stamp);
+		        const entry={reference,nodes:new Set(),callback:null};
+		        const callback=node=>{
+		            if(!node)return;
+		            let nativeCleanup;
+		            if(typeof reference==="function")nativeCleanup=reference(node);
+		            else if(reference)reference.current=node;
+		            records.set(node,entry);entry.nodes.add(node);reconcile(node);
+		            let done=false;
+		            return()=>{
+		                if(done)return;done=true;
+		                try {
+		                    if(typeof nativeCleanup==="function")nativeCleanup();
+		                    else if(typeof reference==="function")reference(null);
+		                    else if(reference)reference.current=null;
+		                }
+		                finally {node.classList.remove(token);records.delete(node);entry.nodes.delete(node);}
+		            };
+		        };
+		        entry.callback=callback;ownedRefs.set(callback,entry);
+		        if(hasNativeRef)refs.set(reference,entry);else nullRefs.set(stamp,entry);
+		        return entry;
+		    }
+		    return {
+		        bind(value) {source=value;},
+		        project(element) {
+		            if(!source || !React.isValidElement(element) || typeof element.type!=="string" ||
+		                element.props.role!=="none" || !includes(element.props.className,source.scrimClass))return element;
+		            const entry=ownedRefs.get(element.props.ref) || forRef(element.props.ref,element.props.className);
+		            const classes=element.props.className.split(/\s+/).filter(value=>value!==token);
+		            // A native ref identifies the already committed Scrim. Carry its
+		            // established parent predicate through class updates without
+		            // detaching/re-attaching the native animation observer's ref.
+		            if(isActive() && entry.nodes.size && [...entry.nodes].every(eligible))classes.push(token);
+		            const className=classes.join(" ");
+		            return className===element.props.className && entry.callback===element.props.ref?element:
+		                React.cloneElement(element,{className,ref:entry.callback});
+		        },
+		        start() {for(const node of records.keys())reconcile(node);},
+		        stop() {for(const node of records.keys())node.classList.remove(token);},
+		        getStatus:()=>({source:source?{...source}:null,trackedNodes:records.size,assignments,
+		            currentMatches:[...records.keys()].filter(node=>node.classList.contains(token)).length})
+		    };
+		}
+		return {createBackdropRule};
+	})();
+
+	const BDFDBCompatUI = (() => {
+		// PRIVATE candidate, not installed. Exact owner contracts are verified against
+		// captured source separately. No scans, imports or app operations in callbacks.
+		function createTools({React, classFor}) {
+		    function merge(original, enabled = [], owned = enabled) {
+		        const remove = new Set(owned.flatMap(a => classFor(a).split(/\s+/)));
+		        const values = String(original || "").split(/\s+/).filter(s => s && !remove.has(s));
+		        for (const alias of enabled) for (const token of classFor(alias).split(/\s+/)) {
+		            if (token && !values.includes(token)) values.push(token);
+		        }
+		        return values.join(" ");
+		    }
+		    function mark(element, enabled, owned = enabled) {
+		        if (!React.isValidElement(element)) return element;
+		        const className = merge(element.props.className, enabled, owned);
+		        return className === (element.props.className || "") ? element : React.cloneElement(element, {className});
+		    }
+		    function mapTree(node, predicate, transform, depth = 0) {
+		        if (depth > 100) throw Error("Unexpected compatibility tree depth");
+		        if (Array.isArray(node)) {
+		            let changed = false;
+		            const result = node.map(child => {
+		                const next = mapTree(child, predicate, transform, depth + 1);
+		                changed ||= next !== child;
+		                return next;
+		            });
+		            return changed ? result : node;
+		        }
+		        if (!React.isValidElement(node)) return node;
+		        const children = node.props.children;
+		        const next = mapTree(children, predicate, transform, depth + 1);
+		        const mapped = children === next ? node : React.cloneElement(node, {children: next});
+		        // Never traverse a newly inserted wrapper's original child again.
+		        return predicate(mapped) ? transform(mapped) : mapped;
+		    }
+		    return {React, classFor, merge, mark, mapTree};
+		}
+
+		function createHandlers(context) {
+		    const {React, merge, mark, mapTree, classFor} = context;
+		    const valid = React.isValidElement;
+		    const hasClass = (element, value) => valid(element) && typeof element.props.className === "string" &&
+		        element.props.className.split(/\s+/).includes(value);
+		    const fontAliases = [12,14,15,16,18,20,24].map(n => "textareafontsize" + n + "padding");
+		    let controllerTools;
+		    return {
+		        card: {
+		            element(event) { return mark(event.returnValue,event.isActive() && event.props?.editable?["cardeditable"]:[],["cardeditable"]); },
+		            after(event) { return mark(event.returnValue, event.props?.editable ? ["cardeditable"] : [], ["cardeditable"]); }
+		        },
+		        guildHeader: {
+		            connect(tools) { controllerTools = tools; },
+		            before(event) {
+		                const instance = event.instance;
+		                controllerTools.patchMethod(instance, "renderGuildHeaderDropdownButton", {after(e) {
+		                    const enabled = ["guildheaderbutton"];
+		                    if (e.methodArguments[0]) enabled.push("guildheaderbuttonopen");
+		                    return mark(e.returnValue, enabled, ["guildheaderbutton", "guildheaderbuttonopen"]);
+		                }});
+		            }
+		        },
+		        qualityIcon: {
+		            element(event) {
+		                const colorClass=merge(event.props.colorClass,event.isActive()?["voicedetailspingforeground"]:[],["voicedetailspingforeground"]);
+		                return colorClass===event.props.colorClass?event.returnValue:React.cloneElement(event.returnValue,{colorClass});
+		            },
+		            after(event) {
+		                if (!valid(event.returnValue)) return event.returnValue;
+		                // Native quality glyphs put colorClass on painted paths.
+		                const colorClass = merge(event.returnValue.props.colorClass, ["voicedetailspingforeground"]);
+		                return React.cloneElement(event.returnValue, {colorClass});
+		            }
+		        },
+		        markupTooltip: {
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!valid(root) || typeof root.props.renderLayer !== "function") return root;
+		                const render = root.props.renderLayer, props = event.props;
+		                return React.cloneElement(root, {renderLayer(...args) {
+		                    const result = Reflect.apply(render, this, args);
+		                    if (!event.isActive()) return result;
+		                    const target = props.targetElement || props.targetElementRef?.current;
+		                    if (!target?.classList?.contains(context.markupTimestampClass)) return result;
+		                    return mapTree(result, element => element.props.role === "tooltip", element =>
+		                        mark(element, ["messagemarkuptimestamptooltip"]));
+		                }});
+		            }
+		        },
+		        modalStack: {
+		            connect(tools) { controllerTools = tools; },
+		            after(event) {
+		                return mapTree(event.returnValue,
+		                    element => controllerTools.isOwnerType(element.type, "modalScrim"),
+		                    element => React.cloneElement(element, {__bdfdbWithLayer: true}));
+		            }
+		        },
+		        modalScrim: {
+		            after(event) {
+		                if (!event.props?.__bdfdbWithLayer) return event.returnValue;
+		                return mapTree(event.returnValue, element => element.props.role === "none", element =>
+		                    mark(element, ["backdropwithlayer", "modallayerbackdropwithlayer"]));
+		            }
+		        },
+		        modalLayer: {
+		            after(event) {
+		                if (context.modalHiddenState === undefined) throw Error("Native modal transition enum is unverified");
+		                const root = event.returnValue, child = root?.props?.children;
+		                if (!valid(root) || !valid(child)) return root;
+		                const hidden = !event.props.instant && event.instance.state.transitionState === context.modalHiddenState;
+		                return React.cloneElement(root, {children: mark(child, hidden ? ["modallayerhidden"] : [], ["modallayerhidden"])});
+		            }
+		        },
+		        channelEditor: {
+		            connect(tools) { controllerTools = tools; },
+		            start() { context.fontStore?.addChangeListener?.(fontChanged); },
+		            stop() { context.fontStore?.removeChangeListener?.(fontChanged); },
+		            after(event) {
+		                const explicit = event.props?.fontSize;
+		                const font = explicit == null ? context.fontStore?.fontSize : explicit;
+		                const fontAlias = fontAliases.find(a => a === "textareafontsize" + font + "padding");
+		                const quick = event.props?.type?.analyticsName === "user_profile";
+		                const owned = [...fontAliases, "quickmessage"];
+		                const enabled = [...(fontAlias ? [fontAlias] : []), ...(quick ? ["quickmessage"] : [])];
+		                return mapTree(event.returnValue,
+		                    element => Object.prototype.hasOwnProperty.call(element.props, "textAreaPaddingClassName") && element.props.channel === event.props.channel,
+		                    element => React.cloneElement(element, {textAreaPaddingClassName: merge(element.props.textAreaPaddingClassName, enabled, owned)}));
+		            }
+		        },
+		        liveTag: {
+		            element(event) {
+		                const small=event.isActive() && event.props.shape!=null && event.props.shape!==context.roundBadgeShape && event.props.size==="small";
+		                return mark(event.returnValue,small?["livetagsmall"]:[],["livetagsmall"]);
+		            },
+		            after(event) {
+		                const props = event.props || {};
+		                const small = props.shape != null && props.shape !== context.roundBadgeShape && props.size === "small";
+		                return mark(event.returnValue, small ? ["livetagsmall"] : [], ["livetagsmall"]);
+		            }
+		        },
+		        expandedTopic: {
+		            after(event) {
+		                return mapTree(event.returnValue,
+		                    element => element.props.selectable === true && element.props.variant === "text-md/normal" &&
+		                        hasClass(element, context.markupClass),
+		                    element => mark(element, ["modalminitext"]));
+		            }
+		        },
+		        plaintextTools: {
+		            after(event) {
+		                const props = event.props;
+		                return mapTree(event.returnValue,
+		                    element => element.props.href === props.url && element.props.download === props.fileName,
+		                    element => React.cloneElement(element, {children: mark(element.props.children, ["filedownloadbutton"])}));
+		            }
+		        }
+		    };
+		    function fontChanged() { controllerTools.refreshOwner("channelEditor"); }
+		}
+
+		const CONTRACTS = [
+		    {name:"card", sourceOwner:"993077", strings:["outline:","editable:",".PRIMARY","className:","ref:"], maxLength:500, adapter:"props"},
+		    {name:"guildHeader", sourceOwner:"799871", kind:"class", strings:["renderGuildHeaderDropdownButton","guildHeaderDropdownButtonRef","renderGuildHeaderUpsellPopout","renderGuildHeaderNotices"]},
+		    {name:"qualityIcon", sourceOwner:"999751", strings:["quality:","largePing:","className:",",..."], maxLength:500, adapter:"props"},
+		    {name:"markupTooltip", sourceOwner:"255434", strings:["targetElementRef:","targetElement:","renderLayer:","role:\"tooltip\""], adapter:"function"},
+		    {name:"modalStack", sourceOwner:"638495", strings:["stackingBehavior","isTopModal:","backdropStyle","LayerComponent:"], adapter:"function"},
+		    {name:"modalScrim", sourceOwner:"462824", strings:["animationVariant:","disablePointerEvents:","\"scrim\"","\"animate-always\""], adapter:"function"},
+		    {name:"modalLayer", sourceOwner:"638495", kind:"class", strings:["componentWillAppear","componentWillEnter","isTopModal:",".HIDDEN","LayerComponent:"]},
+		    {name:"channelEditor", sourceOwner:"392553", kind:"class", strings:["_focusBlurQueue","_cachedEditorWindow","onMaybeShowAutocomplete","showValueWhenDisabled"]},
+		    {name:"liveTag", sourceOwner:"402216", strings:["count:","look:","shape:",".ROUND","\"GRAY\""], adapter:"props"},
+		    {name:"expandedTopic", sourceOwner:"181094", strings:["parseTopic","selectable:!0","linkedLobby","text-md/normal"], adapter:"function"},
+		    {name:"plaintextTools", sourceOwner:"44788", strings:["wordWrap:","setWordWrap:","renderMarkdown:","download:","fileName:"], adapter:"function"}
+		];
+		return {createTools, createHandlers, CONTRACTS};
+	})();
+
+	const BDFDBCompatProfile = (() => {
+		// PRIVATE candidate. No discovery, hook installation, DOM writes or live calls.
+		// Parent must supply its reviewed controller and owner-refresh/cleanup path.
+		const SOLO = "userpopoutcustomstatussoloemoji";
+		const NATIVE_EMOJI = "statusEmoji_ab8609";
+		const NATIVE_TEXT = "statusText_ab8609";
+		const HINT = "userpopoutavatarhint";
+		const HINT_INNER = "userpopoutavatarhintinner";
+		const HINT_KEY = "bdfdb-compat-avatar-profile-hint";
+		const BANNER_THEME = "__BDFDBCompatBannerThemeType";
+		const BANNER_ALIASES = ["userbannerpopout", "userbannerpopoutpremium", "userbannermodal", "userbannermodalpremium"];
+		const AVATAR_STATES = ["userpopoutavatarwrappernormal", "userpopoutavatarwrappernonuserbot", "userpopoutavatarpositionnormal"];
+		const CLASS_TOKENS = Object.freeze({
+		    [SOLO]: "bdfdb-compat-status-solo-emoji",
+		    [HINT]: "bdfdb-compat-avatar-hint",
+		    [HINT_INNER]: "bdfdb-compat-avatar-hint-inner",
+		    userbannerpopout: "bdfdb-compat-banner-popout",
+		    userbannerpopoutpremium: "bdfdb-compat-banner-popout-premium",
+		    userbannermodal: "bdfdb-compat-banner-modal",
+		    userbannermodalpremium: "bdfdb-compat-banner-modal-premium",
+		    userpopoutavatarwrappernormal: "bdfdb-compat-avatar-wrapper-normal",
+		    userpopoutavatarwrappernonuserbot: "bdfdb-compat-avatar-wrapper-nonuser-bot",
+		    userpopoutavatarpositionnormal: "bdfdb-compat-avatar-position-normal",
+		    userpopoutsectionlast: "bdfdb-compat-profile-last-section"
+		});
+
+		function createHandlers(context) {
+		    const {React, mark, mapTree, isActive} = context;
+		    if (!React || typeof mark !== "function" || typeof mapTree !== "function" || typeof isActive !== "function") {
+		        throw new TypeError("Profile handlers require React, mark, mapTree and an active-generation check");
+		    }
+		    const hasClass = (element, token) => React.isValidElement(element) &&
+		        typeof element.props.className === "string" && element.props.className.split(/\s+/).includes(token);
+		    const asChildren = element => Array.isArray(element.props.children) ? element.props.children : [element.props.children];
+		    const hintOriginalChildren = new WeakMap();
+		    const readProfileTheme = context.readProfileTheme;
+		    const avatarModes = new Set(context.legacyAvatarModes || ["POPOUT"]);
+		    if ([...avatarModes].some(mode => mode !== "POPOUT" && mode !== "SIDEBAR")) {
+		        throw new TypeError("Legacy avatar mode translation must be explicitly reviewed");
+		    }
+		    const hasEffect = profile => profile?.profileEffect != null;
+		    const classNames = typeof context.classFor === "function" ? (original, enabled, owned) => {
+		        const remove = new Set(owned.flatMap(alias => String(context.classFor(alias) || "").split(/\s+/)).filter(Boolean));
+		        const next = String(original || "").split(/\s+/).filter(token => token && !remove.has(token));
+		        for (const alias of enabled) for (const token of String(context.classFor(alias) || "").split(/\s+/)) {
+		            if (token && !next.includes(token)) next.push(token);
+		        }
+		        return next.join(" ");
+		    } : null;
+
+		    const handlers = {
+		        profileStatus: {
+		            // Native 394816's private status renderer is normally created with JSX
+		            // by its editable/non-editable profile-status branches. These keys
+		            // belong to that renderer, not to generic Emoji or activity status.
+		            matchStrings: ["statusLabel:", "referenceClassName:", "renderToolbar:", "onShowToolbar:", "placeholderText:", "hasEntered:"],
+		            aliases: [SOLO],
+		            after(event) {
+		                const enabled = isActive();
+		                return mapTree(event.returnValue,
+		                    element => asChildren(element).some(child => hasClass(child, NATIVE_EMOJI)),
+		                    element => {
+		                        const original = element.props.children;
+		                        const children = asChildren(element);
+		                        let changed = false;
+		                        const next = children.map((child, index) => {
+		                            if (!hasClass(child, NATIVE_EMOJI)) return child;
+		                            // Exact native CSS predicate: no following status-text
+		                            // sibling. Do not use text truthiness, Nitro, global
+		                            // emoji sizing or presence of a preceding label.
+		                            const hasFollowingText = children.slice(index + 1).some(sibling => hasClass(sibling, NATIVE_TEXT));
+		                            const replacement = mark(child, enabled && !hasFollowingText ? [SOLO] : [], [SOLO]);
+		                            changed ||= replacement !== child;
+		                            return replacement;
+		                        });
+		                        if (!changed) return element;
+		                        return React.cloneElement(element, {children: Array.isArray(original) ? next : next[0]});
+		                    });
+		            }
+		        }
+		    };
+
+		    if (classNames) {
+		        handlers.profileSection = {
+		            matchStrings: ["headingClassName:", "headingVariant:", "headingColor:", "headingIcon:", "hideHeading:", "introText:", "scrollTargetId:"],
+		            aliases: ["userpopoutsectionlast"],
+		            element(event) {return mark(event.returnValue,event.isActive() && event.props.lastSection===true?["userpopoutsectionlast"]:[],["userpopoutsectionlast"]);},
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!React.isValidElement(root)) return root;
+		                const props = event.methodArguments[0] || {};
+		                return mark(root, isActive() && props.lastSection === true ? ["userpopoutsectionlast"] : [], ["userpopoutsectionlast"]);
+		            }
+		        };
+		    }
+
+		    // The native Tier2 utility must be resolved before these handlers/adapters
+		    // are created. Numeric ordering is invalid: native Basic/TIER_0 is value3.
+		    if (classNames && typeof context.isPremiumTier2 === "function") {
+		        handlers.profileBannerType = {
+		            matchStrings: ["themeType:", "canUsePremiumProfileCustomization:", "specOverrides:", "themePadding:"],
+		            aliases: [],
+		            element(event) {
+		                return React.cloneElement(event.returnValue,{[BANNER_THEME]:event.props.themeType});
+		            },
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!React.isValidElement(root) || !isActive()) return root;
+		                return React.cloneElement(root, {[BANNER_THEME]: event.methodArguments[0]?.themeType});
+		            }
+		        };
+		        handlers.profileBannerFill = {
+		            matchStrings: ["pendingBanner:", "avatarOffsetX:", "avatarOffsetY:", "bannerWidth:", "bannerHeight:", "themePadding:", "fillClassName:"],
+		            aliases: BANNER_ALIASES,
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!React.isValidElement(root)) return root;
+		                const props = event.methodArguments[0] || {};
+		                const type = props[BANNER_THEME];
+		                const premiumBanner = root.props.bannerSrc != null || hasEffect(props.displayProfile);
+		                const enabled = [];
+		                if (isActive()) {
+		                    if (type === "POPOUT") {
+		                        if (premiumBanner) enabled.push("userbannerpopoutpremium");
+		                        else if (!context.isPremiumTier2(props.displayProfile)) enabled.push("userbannerpopout");
+		                        // Tier2 without banner/effect was a third, distinct
+		                        // native class. Neither legacy public alias applies.
+		                    }
+		                    else if (type === "MODAL" || type === "MODAL_V2") {
+		                        enabled.push(premiumBanner ? "userbannermodalpremium" : "userbannermodal");
+		                    }
+		                }
+		                const value = classNames(root.props.fillClassName, enabled, BANNER_ALIASES);
+		                return value === root.props.fillClassName ? root : React.cloneElement(root, {fillClassName: value});
+		            }
+		        };
+		    }
+
+		    // Enable this owner only after the controller has resolved the already-
+		    // cached native context reader. Calling a discovery routine or changing
+		    // the reader/hook sequence during a render is explicitly unsupported.
+		    if (typeof context.readProfileTheme === "function" && classNames && typeof context.isPremiumTier2 === "function") {
+		        handlers.profileAvatar = {
+		            matchStrings: ["onOpenProfile:", "onOpenAvatar:", "imageAnimatingClassName:", "PRESS_VIEW_PROFILE", "hasAvatarForGuild"],
+		            aliases: [HINT, HINT_INNER, ...AVATAR_STATES],
+		            hooks() {
+		                return {profileTheme: readProfileTheme()};
+		            },
+		            hookSchema: "native-profile-context-v1",
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!React.isValidElement(root)) return root;
+		                const props = event.methodArguments[0] || {};
+		                const themeType = event.hookContext?.profileTheme?.themeType;
+		                const user = props.user;
+		                const guildId = props.displayProfile?.guildId ?? props.guildId;
+		                const isClyde = typeof user?.isClyde === "function" && user.isClyde();
+		                const nonUserBot = typeof user?.isNonUserBot === "function" && user.isNonUserBot() && !isClyde;
+		                const enabled = [];
+		                // POPOUT is proved directly. Old PANEL -> current SIDEBAR is
+		                // an optional fixed translation for parent review, never an
+		                // inference from avatar dimensions or a modal-wide marker.
+		                if (isActive() && avatarModes.has(themeType)) {
+		                    enabled.push(nonUserBot ? "userpopoutavatarwrappernonuserbot" : "userpopoutavatarwrappernormal");
+		                    if (themeType === "POPOUT" && props.displayProfile?.banner == null && !hasEffect(props.displayProfile) &&
+		                        !context.isPremiumTier2(props.displayProfile)) enabled.push("userpopoutavatarpositionnormal");
+		                }
+		                const markedRoot = mark(root, enabled, AVATAR_STATES);
+		                const opensAvatar = props.onOpenAvatar != null && user != null &&
+		                    (user.avatar != null || typeof user.hasAvatarForGuild === "function" && user.hasAvatarForGuild(guildId));
+		                const nativeAvatar = Array.isArray(root.props.children) ? root.props.children[0] : root.props.children;
+		                const avatarProps = React.isValidElement(nativeAvatar) ? nativeAvatar.props : null;
+		                const decorated = avatarProps?.avatarDecoration != null;
+		                const supportedMask = avatarProps != null && !avatarProps.isMobile && !avatarProps.isVR && !avatarProps.isTyping;
+		                const hintMask = avatarProps?.status == null || avatarProps.status === "unknown" ?
+		                    "svg-mask-avatar-default" : "svg-mask-avatar-status-round-80";
+		                const show = isActive() && themeType === "POPOUT" && props.avatarSize === "SIZE_80" &&
+		                    typeof props.onOpenProfile === "function" && !opensAvatar && !isClyde && !nonUserBot && !decorated && supportedMask && typeof root.props["aria-label"] === "string";
+		                const previous = hintOriginalChildren.get(root);
+		                const hasOwnHint = Array.isArray(root.props.children) && root.props.children.some(child =>
+		                    React.isValidElement(child) && child.key === HINT_KEY);
+		                const originalChildren = previous !== undefined ? previous : hasOwnHint ?
+		                    root.props.children.filter(child => !(React.isValidElement(child) && child.key === HINT_KEY)) : root.props.children;
+		                if (!show) {
+		                    return previous === undefined && !hasOwnHint ? markedRoot : React.cloneElement(markedRoot, {children: originalChildren});
+		                }
+		                // The first-party preview places a non-interactive SVG hint
+		                // immediately after the avatar. Preserve that shape and mask;
+		                // the current root already owns all click/focus behavior.
+		                const hint = React.createElement("svg", {
+		                    key: HINT_KEY,
+		                    className: context.classFor(HINT),
+		                    width: 80,
+		                    height: 80,
+		                    viewBox: "0 0 80 80",
+		                    "aria-hidden": true,
+		                    focusable: false,
+		                    children: React.createElement("foreignObject", {
+		                        x: 0, y: 0, width: 80, height: 80,
+		                        mask: "url(#" + hintMask + ")",
+		                        children: React.createElement("div", {
+		                            className: context.classFor(HINT_INNER),
+		                            children: root.props["aria-label"]
+		                        })
+		                    })
+		                });
+		                const children = Array.isArray(originalChildren) ? [...originalChildren, hint] : [originalChildren, hint];
+		                const result = React.cloneElement(markedRoot, {children});
+		                hintOriginalChildren.set(result, originalChildren);
+		                return result;
+		            }
+		        };
+		    }
+		    return handlers;
+		}
+
+		return {createHandlers, CLASS_TOKENS, NATIVE_EMOJI, NATIVE_TEXT, HINT_KEY, BANNER_THEME};
+	})();
+
+	const BDFDBCompatExtra = (() => {
+		// PRIVATE candidate. The controller integration/lifecycle gate is still open.
+		function createHandlers(context) {
+		    const {React, mark, mapTree, classFor} = context;
+		    const valid = React.isValidElement;
+		    let tools;
+		    const hasClass = (element, token) => valid(element) && typeof element.props.className === "string" &&
+		        element.props.className.split(/\s+/).includes(token);
+		    const shared=context.shared || {};
+		    const welcomeRecords = shared.welcomeRecords ||= new Set(), dmNodes = new Set(), dmInstances = new WeakMap();
+		    function removeWelcome(record) {
+		        record.node?.classList.remove(classFor("messageswelcomebutton"));
+		        record.icon?.classList.remove(classFor("messageswelcomebuttonicon"));
+		        record.icon = null;
+		    }
+		    function reconcileWelcome(record) {
+		        if (!record.node || !record.event?.isActive()) { removeWelcome(record); return; }
+		        record.node.classList.add(classFor("messageswelcomebutton"));
+		        const icon = record.node.querySelector("svg");
+		        if (record.icon && record.icon !== icon) record.icon.classList.remove(classFor("messageswelcomebuttonicon"));
+		        record.icon = icon;
+		        icon?.classList.add(classFor("messageswelcomebuttonicon"));
+		    }
+		    function clearNativeRef(record) {
+		        if (typeof record.nativeCleanup === "function") record.nativeCleanup();
+		        else if (typeof record.nativeRef === "function") record.nativeRef(null);
+		        else if (record.nativeRef) record.nativeRef.current = null;
+		        record.nativeCleanup = null;
+		        record.nativeRef = null;
+		    }
+		    function setNativeRef(record, reference) {
+		        record.nativeRef = reference;
+		        if (typeof reference === "function") record.nativeCleanup = reference(record.node);
+		        else if (reference) reference.current = record.node;
+		    }
+		    function reconcileDm(instance, event) {
+		        const previous = dmInstances.get(instance);
+		        if (previous) { previous.classList.remove(classFor("dmaddpopout")); dmNodes.delete(previous); }
+		        if (!event.isActive()) return;
+		        const node = context.findDOMNode(instance);
+		        const target = node?.matches?.('[data-mana-component="modal"]') ? node : node?.querySelector?.('[data-mana-component="modal"]');
+		        if (target) { target.classList.add(classFor("dmaddpopout")); dmNodes.add(target); dmInstances.set(instance,target); }
+		    }
+		    return {
+		        welcomeGlyph: {
+		            after(event) {
+		                const root = event.returnValue;
+		                if (!valid(root) || !valid(root.props.children)) return root;
+		                const glyph = mark(root.props.children, event.props.locked ? ["messageswelcomelocked"] : [], ["messageswelcomelocked"]);
+		                return glyph === root.props.children ? root : React.cloneElement(root, {children:glyph});
+		            }
+		        },
+		        welcomeEdit: {
+		            hookSchema:"welcome-button-ref-v1",
+		            hooks() {
+		                const holder = React.useRef(null);
+		                if (!holder.current) {
+		                    const record = {node:null,icon:null,nativeRef:null,nextNativeRef:null,nativeCleanup:null,event:null};
+		                    record.ref = node => {
+		                        if (node === record.node) return;
+		                        removeWelcome(record);
+		                        if (record.node) clearNativeRef(record);
+		                        record.node = node;
+		                        if (node) { setNativeRef(record,record.nextNativeRef); reconcileWelcome(record); }
+		                    };
+		                    holder.current = record;
+		                }
+		                const record = holder.current;
+		                React.useLayoutEffect(() => {
+		                    welcomeRecords.add(record);
+		                    if (record.node && record.nativeRef !== record.nextNativeRef) {
+		                        clearNativeRef(record); setNativeRef(record,record.nextNativeRef);
+		                    }
+		                    reconcileWelcome(record);
+		                });
+		                React.useLayoutEffect(() => () => { removeWelcome(record); welcomeRecords.delete(record); }, []);
+		                return record;
+		            },
+		            after(event) {
+		                const record = event.hookContext;
+		                record.event = event;
+		                return mapTree(event.returnValue,
+		                    element => element.props.size === "sm" && element.props.variant === "secondary" &&
+		                        typeof element.props.icon === "function" && typeof element.props.onClick === "function",
+		                    element => {
+		                        record.nextNativeRef = element.props.buttonRef;
+		                        return React.cloneElement(element, {buttonRef:record.ref});
+		                    });
+		            },
+		            stop() { for (const record of welcomeRecords) removeWelcome(record); }
+		        },
+		        dmInvite: {
+		            connect(value) { tools = value; },
+		            before(event) {
+		                // Owner452015.ts already has mount/unmount. A reviewed controller
+		                // supplies the reversible missing-update method and commit flag.
+		                tools.attachInstanceCommit(event.instance, () => reconcileDm(event.instance,event));
+		            },
+		            unmount(instance) {
+		                const node=dmInstances.get(instance);
+		                node?.classList.remove(classFor("dmaddpopout"));
+		                dmNodes.delete(node);dmInstances.delete(instance);
+		            },
+		            stop() { for (const node of dmNodes) node.classList.remove(classFor("dmaddpopout")); dmNodes.clear(); }
+		        },
+		        recentPrivateAvatar: {
+		            after(event) {
+		                return mark(event.returnValue, event.props.channel?.isPrivate?.() ? ["recentmentionsdmicon"] : [], ["recentmentionsdmicon"]);
+		            }
+		        },
+		        menuAccessory: {
+		            after(event) {
+		                const root=event.returnValue;
+		                if (!valid(root) || root.type !== "img" || !hasClass(root,context.menuImageClass)) return root;
+		                // A transparent wrapper keeps the native image, dimensions,
+		                // native event target and enclosing menu-item ancestry intact.
+		                return React.createElement("div",{key:root.key,className:classFor("menuimagecontainer"),
+		                    role:"presentation",children:root});
+		            }
+		        },
+		        favoritesNav: {
+		            after(event) {
+		                return mapTree(event.returnValue, element=>hasClass(element,context.favoriteIconClass),element=>
+		                    React.createElement("div",{key:element.key,className:classFor("guildfavoritesring"),children:element}));
+		            }
+		        },
+		        unreadBar: {
+		            after(event) {
+		                const root=event.returnValue;
+		                if (!valid(root)) return root;
+		                const icon=React.createElement("svg",{key:"bdfdb-compat-unread-icon",className:classFor("unreadbaricon"),
+		                    viewBox:"0 0 24 24",width:12,height:12,fill:"none",stroke:"currentColor",strokeWidth:2,
+		                    "aria-hidden":true,focusable:false,children:React.createElement("path",{
+		                        d:event.props.reverse?"M5 9l7 7 7-7":"M5 15l7-7 7 7"})});
+		                return React.cloneElement(root,{children:[root.props.children,icon]});
+		            }
+		        }
+		    };
+		}
+
+		const CONTRACTS = [
+		    {name:"welcomeGlyph",sourceOwner:"314307",strings:["locked:","channelType:",".GUILD_STAGE_VOICE",".GUILD_APP"],adapter:"function"},
+		    {name:"welcomeEdit",sourceOwner:"425812",strings:["MANAGE_CHANNELS","PencilIcon","parseTopic","channelName:"],maxLength:1500,adapter:"function"},
+		    {name:"dmInvite",sourceOwner:"452015",kind:"class",strings:["handleInviteUsers","_promoteDMToGroupDM","renderModalInput","PRIVATE_CHANNEL_INVITE_MODAL_OPENED"]},
+		    {name:"recentPrivateAvatar",sourceOwner:"173842",strings:["channel:","isGroupDM()","getGuild","aria-hidden","SIZE_32"],maxLength:800,adapter:"function"},
+		    {name:"menuAccessory",sourceOwner:"980707",strings:["case\"image\":","imageAccessory"],adapter:"function"},
+		    {name:"favoritesNav",sourceOwner:"242816",strings:["favoriteGuildMuted","favorite-server-context","getFavoriteChannels","StarIcon"],maxLength:4000,adapter:"function"},
+		    {name:"unreadBar",sourceOwner:"173860",kind:"class",strings:["getAnimatedStyle","animateOut","reverse:","text:","hide:"]}
+		];
+		return {createHandlers,CONTRACTS};
+	})();
+
+	const BDFDBCompatUpload = (() => {
+		// PRIVATE source-reviewed SharedModal props adapter. Numeric owner IDs are
+		// evidence only: discovery uses the unique native SharedModal source contract.
+		const CONTRACT = Object.freeze({
+		    name: "uploadModal", kind: "function", adapter: "props", sourceOwner: "189213",
+		    strings: ["actionBarInputLayout:", "actionsFullWidth:null==", "scrollerRef:", "notice:"],
+		    maxLength: 1000
+		});
+		const SHARED_KEY = "remaining41UploadModalMarker";
+		const MARKER_KEY = "bdfdb-upload-modal-marker";
+		// The complete submit body is globally unique in all 6,283 captured assets.
+		// Anchoring both ends excludes functions which merely contain this callback.
+		const CONFIRM_SOURCE = /^function\s*[$\w]*\s*\(\s*\)\s*\{\s*[$\w]+\s*\(\s*\{\s*name\s*:\s*[$\w]+\s*,\s*description\s*:\s*[$\w]+\s*,\s*spoiler\s*:\s*[$\w]+\s*\}\s*\)\s*,\s*[$\w]+\s*\(\s*\)\s*;?\s*\}$/;
+
+		function isAttachmentDialog(props) {
+		    const actions = props?.actions;
+		    if (!Array.isArray(actions) || actions.length !== 2 || actions[0]?.variant !== "secondary" ||
+		        actions[1]?.variant !== "primary" || typeof props.onClose !== "function" ||
+		        actions[0].onClick !== props.onClose || typeof actions[1].onClick !== "function") return false;
+		    try { return CONFIRM_SOURCE.test(Function.prototype.toString.call(actions[1].onClick)); }
+		    catch (_) { return false; }
+		}
+
+		function createHandlers(context) {
+		    const {React, shared, document, readModalContext, classFor, isActive} = context;
+		    if (!shared || typeof readModalContext !== "function" || typeof classFor !== "function" ||
+		        typeof isActive !== "function" || typeof document?.getElementById !== "function") {
+		        throw Error("UploadModal requires shared, document, resolved native readModalContext, classFor and isActive");
+		    }
+		    let holder = shared[SHARED_KEY];
+		    if (!holder) {
+		        // The stable component closes over native React and this mutable holder,
+		        // never a prior BDFDB context/generation. Its hook sequence is fixed.
+		        holder = {React, readModalContext, binding: null, trackUpdate: null, records: new Set()};
+		        holder.Marker = function BDFDBUploadModalMarker() {
+		            const modal = holder.readModalContext();
+		            const [, dispatch] = React.useReducer(value => value + 1, 0);
+		            React.useLayoutEffect(() => holder.trackUpdate(dispatch), [holder.trackUpdate]);
+		            React.useLayoutEffect(() => {
+		                const binding = holder.binding;
+		                if (!binding?.isActive() || typeof modal?.id !== "string") return;
+		                const node = binding.document.getElementById(modal.id)?.querySelector('[data-mana-component="modal"]');
+		                if (!node?.classList) return;
+		                const token = binding.classFor("uploadmodal");
+		                // This alias is one class token, not an arbitrary selector.
+		                if (typeof token !== "string" || !token || /\s/.test(token)) return;
+		                node.classList.add(token);
+		                const record = {node, token};
+		                holder.records.add(record);
+		                return () => { node.classList.remove(token); holder.records.delete(record); };
+		            });
+		            return null;
+		        };
+		        shared[SHARED_KEY] = holder;
+		    }
+		    if (holder.React !== React) throw Error("UploadModal marker requires the same native React instance across rebinds");
+		    const binding = {document, readModalContext, classFor, isActive};
+		    let connected = false;
+		    function activate() {
+		        if (!connected) return;
+		        holder.readModalContext = binding.readModalContext;
+		        holder.binding = binding;
+		    }
+		    return {uploadModal: {
+		        aliases: ["uploadmodal"],
+		        connect(tools) {
+		            if (typeof tools?.trackUpdate !== "function") throw Error("UploadModal requires controller tools.trackUpdate(dispatch) returning cleanup");
+		            holder.trackUpdate = tools.trackUpdate;
+		            connected = true;
+		            activate();
+		        },
+		        start: activate,
+		        stop() {
+		            if (holder.binding !== binding) return;
+		            holder.binding = null;
+		            // Stop is synchronous; reducer regeneration also releases effects.
+		            for (const record of holder.records) record.node.classList.remove(record.token);
+		        },
+		        element(event) {
+		            const element = event.returnValue;
+		            if (!connected || holder.binding !== binding || !isActive() || !React.isValidElement(element) ||
+		                !isAttachmentDialog(event.props)) return element;
+		            // Preserve another plugin's slot and never turn it into a fragment:
+		            // doing so can remount that plugin's existing stateful component.
+		            if (element.props.contentOutsideContainer != null) return element;
+		            return React.cloneElement(element, {
+		                contentOutsideContainer: React.createElement(holder.Marker, {key: MARKER_KEY})
+		            });
+		        }
+		    }};
+		}
+
+		return {createHandlers, CONTRACT, CONFIRM_SOURCE, isAttachmentDialog, SHARED_KEY, MARKER_KEY};
+	})();
+
+	const BDFDBCompatBindings = (() => {
+		// PRIVATE generation-local dependency preparation. Searches only initialized
+		// exports through BDFDB's existing finder. Never loads/executes a provider.
+		function createBindings({BDFDB,React,controller,document,ui,profile,extra,upload,classTokens}) {
+		    const handlers=Object.create(null), native=Object.create(null), dependencies=Object.create(null);
+		    const shared=controller.shared;
+		    const classFor=alias=>{if(!classTokens[alias])throw Error("Unknown compatibility alias: "+alias);return classTokens[alias];};
+		    const tools=ui.createTools({React,classFor});
+		    const base={...tools,shared,document,isActive:controller.isActive};
+		    function unique(name,predicate) {
+		        if (native[name]) return native[name];
+		        const found=BDFDB.ModuleUtils.find(value=>{try{return predicate(value)?value:false;}catch(_){return false;}},{all:true});
+		        // The existing finder also inspects module factories. A factory match
+		        // can return its exports object, so revalidate the returned value.
+		        const matches=[...new Set(found || [])].filter(value=>{try{return !!predicate(value);}catch(_){return false;}});
+		        dependencies[name]={available:matches.length===1,matches:matches.length};
+		        if(matches.length===1) native[name]=matches[0];
+		        return native[name] || null;
+		    }
+		    function text(fn) {
+		        const seen=new Set();
+		        while(typeof fn==="function" && !seen.has(fn)) {
+		            seen.add(fn);const next=fn.__originalFunction || fn._originalFunction;
+		            if(typeof next!=="function")break;fn=next;
+		        }
+		        return typeof fn==="function"?String(fn):"";
+		    }
+		    function modalTransitionEnum(value) {
+		        const names=["ENTERING","ENTERED","EXITING","EXITED","HIDDEN"];
+		        return value && typeof value==="object" && Object.keys(value).length===10 &&
+		            names.every((name,index)=>value[name]===index && value[index]===name);
+		    }
+		    function profileDependencies(avatar) {
+		        const premiumShape=m=>m && typeof m.isPremiumAtLeast==="function" && typeof m.isPremium==="function" && typeof m.isPremiumExactly==="function";
+		        // Captured module474090 exports its utility object together with its
+		        // three methods and the separate at-most helper. Public reexports of
+		        // the object alone do not identify the native owner namespace.
+		        const premiumNamespace=unique("nativePremiumUtils",m=>{
+		            if(!m || typeof m!=="object" || Object.keys(m).length!==5)return false;
+		            const values=Object.values(m),objects=values.filter(premiumShape);
+		            return objects.length===1 && values.filter(v=>typeof v==="function").length===4 &&
+		                [objects[0].isPremiumAtLeast,objects[0].isPremium,objects[0].isPremiumExactly].every(fn=>values.includes(fn));
+		        });
+		        const premium=premiumNamespace && Object.values(premiumNamespace).find(premiumShape);
+		        const types=unique("nativePremiumTypes",m=>m && m.TIER_1===1 && m.TIER_2===2 && m.TIER_0===3 && m[3]==="TIER_0");
+		        if(!premium || !types)return null;
+		        let readProfileTheme;
+		        if(avatar) {
+		            const namespace=unique("nativeProfileContext",m=>{
+		                if(!m || typeof m!=="object")return false;
+		                const values=Object.values(m);
+		                return values.some(fn=>typeof fn==="function" && ["themeType:","primaryColor:","secondaryColor:","userId:","useMemo","Provider"].every(s=>text(fn).includes(s))) &&
+		                    values.some(fn=>typeof fn==="function" && text(fn).includes("useContext("));
+		            });
+		            if(!namespace)return null;
+		            const readers=Object.values(namespace).filter(fn=>typeof fn==="function" && text(fn).includes("useContext("));
+		            if(readers.length!==1)return null;
+		            readProfileTheme=readers[0];
+		        }
+		        return {isPremiumTier2:p=>premium.isPremiumAtLeast(p?.premiumType,types.TIER_2),readProfileTheme};
+		    }
+		    function prepareOwner(name) {
+		        if(handlers[name])return handlers[name];
+		        let value;
+		        if(["profileStatus","profileSection","profileBannerType","profileBannerFill","profileAvatar"].includes(name)) {
+		            const needsPremium=["profileBannerType","profileBannerFill","profileAvatar"].includes(name);
+		            const deps=needsPremium?profileDependencies(name==="profileAvatar"):{};
+		            if(deps==null)return null;
+		            value=profile.createHandlers({...base,...deps})[name];
+		        }
+		        else if(name==="uploadModal") {
+		            const readModalContext=unique("nativeModalContextReader",fn=>typeof fn==="function" &&
+		                text(fn).includes("useModalContext must be used within a ModalContext.Provider") && text(fn).includes("useContext("));
+		            if(!readModalContext)return null;
+		            value=upload.createHandlers({...base,readModalContext}).uploadModal;
+		        }
+		        else if(["welcomeGlyph","welcomeEdit","dmInvite","recentPrivateAvatar","favoritesNav"].includes(name)) {
+		            const favoriteIconClass=name==="favoritesNav"?BDFDB.disCN.guildfavoritesicon:undefined;
+		            if(name==="favoritesNav" && (!favoriteIconClass || favoriteIconClass.includes("BDFDB_undefined")))return null;
+		            value=extra.createHandlers({...base,findDOMNode:instance=>BDFDB.ReactUtils.findDOMNode(instance),favoriteIconClass})[name];
+		        }
+		        else {
+		            const ctx={...base};
+		            if(name==="channelEditor") {
+		                ctx.fontStore=unique("nativeAccessibilityStore",m=>m?.constructor?.displayName==="AccessibilityStore" &&
+		                    Number.isFinite(m.fontSize) && typeof m.addChangeListener==="function" && typeof m.removeChangeListener==="function");
+		                if(!ctx.fontStore)return null;
+		            }
+		            if(name==="modalLayer") {
+		                // Native modalLayer imports this enum from a namespace also
+		                // exporting duration, layer names and its React context. Bare
+		                // transition enums are shared by unrelated components.
+		                const namespace=unique("nativeModalTransitionStates",m=>{
+		                    if(!m || typeof m!=="object")return false;
+		                    const values=Object.values(m);
+		                    return values.length===5 && values.includes(300) && values.includes("default") && values.includes("popout") &&
+		                        values.filter(modalTransitionEnum).length===1 &&
+		                        values.filter(value=>value?.$$typeof===Symbol.for("react.context")).length===1;
+		                });
+		                if(!namespace)return null;ctx.modalHiddenState=Object.values(namespace).find(modalTransitionEnum).HIDDEN;
+		            }
+		            if(name==="liveTag") {
+		                const shape=unique("nativeLiveTagShapeClasses",m=>m && typeof m==="object" && Object.values(m).length===6 &&
+		                    ["pill_","badge_","round_","roundLeft_","roundRight_"].every(prefix=>Object.values(m).some(v=>typeof v==="string" && v.startsWith(prefix))));
+		                if(!shape)return null;ctx.roundBadgeShape=Object.values(shape).find(v=>v.startsWith("round_"));
+		            }
+		            if(name==="markupTooltip")ctx.markupTimestampClass=BDFDB.disCN.messagemarkuptimestamp;
+		            if(name==="expandedTopic")ctx.markupClass=BDFDB.disCN.messagemarkup;
+		            value=ui.createHandlers(ctx)[name];
+		        }
+		        if(value)handlers[name]=value;
+		        return value || null;
+		    }
+		    return {handlers,prepareOwner,getDiagnostics:()=>({dependencies:JSON.parse(JSON.stringify(dependencies)),preparedOwners:Object.keys(handlers)})};
+		}
+
+		function createContracts({ui,profile,extra,upload}) {
+		    const profileMetadata={
+		        profileStatus:{sourceOwner:"394816",adapter:"function"},profileSection:{sourceOwner:"900179",adapter:"props"},
+		        profileBannerType:{sourceOwner:"915614",adapter:"props"},profileBannerFill:{sourceOwner:"915614",adapter:"function"},
+		        profileAvatar:{sourceOwner:"718019",adapter:"function"}
+		    };
+		    // Build source contracts from the same callbacks, without invoking their
+		    // native helpers/hooks. These dummy helpers are never used for rendering.
+		    const probe=profile.createHandlers({React:{},mark:()=>{},mapTree:()=>{},classFor:()=>"",isActive:()=>false,
+		        isPremiumTier2:()=>false,readProfileTheme:()=>null});
+		    const result=ui.CONTRACTS.filter(c=>!["modalStack","modalScrim"].includes(c.name));
+		    for(const [name,meta]of Object.entries(profileMetadata))result.push({name,...meta,strings:probe[name].matchStrings});
+		    result.push(...extra.CONTRACTS.filter(c=>!["menuAccessory","unreadBar"].includes(c.name)),upload.CONTRACT);
+		    return result;
+		}
+		return {createBindings,createContracts};
+	})();
+
 	
 	var BDFDB, Internal;
 	var LibraryRequires = {};
@@ -689,6 +2268,7 @@ module.exports = (_ => {
 				BDFDB.TimeUtils.suppress(_ => {
 					if (!BDFDB.ObjectUtils.is(plugin)) return;
 					if (plugin == window.BDFDB_Global) {
+						if (Internal.compatibilityGeneration != null && window[compatibilitySlot]) window[compatibilitySlot].detach(Internal.compatibilityGeneration);
 						plugin = BDFDB;
 						let updateNotice = BDFDB.dotCN && document.querySelector(BDFDB.dotCN.noticeupdate);
 						if (updateNotice) updateNotice.close();
@@ -1160,7 +2740,9 @@ module.exports = (_ => {
 				return {backup: fs.existsSync(path) && (fs.readFileSync(path) || "").toString(), hashIsSame: libHashes[fileName] && oldLibHashes[fileName] && libHashes[fileName] == oldLibHashes[fileName]};
 			};
 			const requestLibraryHashes = tryAgain => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 				requestFunction("https://api.github.com/repos/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/contents/Library/_res?ref=develop", {timeout: 60000}, (e, r, b) => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 					if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryHashes(), 10000);
 					else {
 						try {
@@ -1175,13 +2757,16 @@ module.exports = (_ => {
 				});
 			};
 			const requestLibraryData = tryAgain => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 				const parseCSS = css => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 					libraryCSS = css;
 					
 					const backupObj = getBackup(dataFileName, dataFilePath);
 					const UserStore = BdApi.Webpack && BdApi.Webpack.getModule && BdApi.Webpack.Filters && BdApi.Webpack.Filters.byKeys && BdApi.Webpack.getModule(BdApi.Webpack.Filters.byKeys("getCurrentUser"));
 					if (backupObj.backup && backupObj.hashIsSame || UserStore && UserStore.getCurrentUser().id == "278543574059057154") parseData(backupObj.backup);
 					else requestFunction(`https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/${dataFileName}`, {timeout: 60000}, (e, r, b) => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 						if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryData(), 10000);
 						if (!e && b && r.statusCode == 200) {
 							if (backupObj.backup && backupObj.backup.replace(/\s/g, "") == b.replace(/\s/g, "")) {
@@ -1194,6 +2779,7 @@ module.exports = (_ => {
 					});
 				};
 				const parseData = (dataString, fetched) => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 					try {InternalData = JSON.parse(dataString);}
 					catch (err) {
 						if (fetched) {
@@ -1205,7 +2791,7 @@ module.exports = (_ => {
 						}
 						else BDFDB.LogUtils.error(["Failed to initiate Library!", dataString ? "Corrupt Backup." : "No Backup.", err]);
 					}
-					if (fetched && dataString) fs.writeFile(dataFilePath, dataString, _ => {});
+					if (fetched && dataString) {try {fs.writeFileSync(dataFilePath, dataString);} catch (_) {}}
 					
 					Internal.getWebModuleReq = function () {
 						if (!Internal.getWebModuleReq.req) {
@@ -1226,19 +2812,21 @@ module.exports = (_ => {
 				const backupObj = getBackup(cssFileName, cssFilePath);
 				if (backupObj.backup && backupObj.hashIsSame) parseCSS(backupObj.backup);
 				else requestFunction(`https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/${cssFileName}`, {timeout: 60000}, (e, r, b) => {
+					if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 					if ((e || !b || r.statusCode != 200) && tryAgain) return BDFDB.TimeUtils.timeout(_ => requestLibraryData(), 10000);
 					if (!e && b && r.statusCode == 200) {
 						if (backupObj.backup && backupObj.backup.replace(/\s/g, "") == b.replace(/\s/g, "")) {
 							libHashes[cssFileName] = oldLibHashes[cssFileName];
 							BDFDB.DataUtils.save(libHashes, BDFDB, "hashes");
 						}
-						fs.writeFile(cssFilePath, b, _ => {});
+						try {fs.writeFileSync(cssFilePath, b);} catch (_) {}
 						parseCSS(b);
 					}
 					else parseCSS(fs.existsSync(cssFilePath) && (fs.readFileSync(cssFilePath) || "").toString());
 				});
 			};
 			const loadLibrary = _ => {
+				if (window[compatibilityEvaluationSlot] !== compatibilityEvaluation) return;
 				Internal.getPluginURL = function (plugin) {
 					plugin = plugin == BDFDB && Internal || plugin;
 					if (BDFDB.ObjectUtils.is(plugin)) {
@@ -8527,8 +10115,52 @@ module.exports = (_ => {
 						}
 					}
 				};
-				BDFDB.PatchUtils.patch(BDFDB, LibraryModules.React, "createElement", createElementPatches);
-				if (Internal.LibraryModules.InternalReactUtils) for (let key in Internal.LibraryModules.InternalReactUtils) if (typeof Internal.LibraryModules.InternalReactUtils[key] == "function" && Internal.LibraryModules.InternalReactUtils[key].toString().indexOf("return{$$typeof:") > -1) BDFDB.PatchUtils.patch(BDFDB, Internal.LibraryModules.InternalReactUtils, key, createElementPatches, {ignoreErrors: true});
+
+                const compatibilityTargets = [{object: LibraryModules.React, method: "createElement"}];
+                if (Internal.LibraryModules.InternalReactUtils) for (const key in Internal.LibraryModules.InternalReactUtils) {
+                    const value = Internal.LibraryModules.InternalReactUtils[key];
+                    if (typeof value == "function" && value.toString().indexOf("return{$$typeof:") > -1) compatibilityTargets.push({object: Internal.LibraryModules.InternalReactUtils, method: key});
+                }
+                try {
+                    let bridge = window[compatibilitySlot];
+                    if (!bridge) {
+                        let controller;
+                        const React = LibraryModules.React;
+                        const classFor = alias => BDFDBCompatTokens[alias];
+                        const backdrop = BDFDBCompatBackdrop.createBackdropRule({React, classFor, isActive: () => controller && controller.isActive()});
+                        const inspector = BDFDBCompatInspector.createCommittedInspector({document});
+                        const ownedTokens = [...new Set(Object.values(BDFDBCompatTokens).filter(token => token.startsWith("bdfdb-compat-") && token !== classFor("backdropwithlayer")))];
+                        const hosts = BDFDBCompatHosts.createHostMarkers({React, ownedTokens, isActive: () => controller && controller.isActive()});
+                        const contracts = BDFDBCompatBindings.createContracts({ui:BDFDBCompatUI, profile:BDFDBCompatProfile, extra:BDFDBCompatExtra, upload:BDFDBCompatUpload});
+                        controller = BDFDBCompatController.createClassCompatibility({Patcher:BdApi.Patcher, React, contracts,
+                            inspectCommitted:inspector.inspect, hostMarkers:hosts, hostProjections:[backdrop],
+                            hashSource:source => require("crypto").createHash("sha256").update(source).digest("hex")});
+                        bridge = BDFDBCompatBridge.createRendererBridge({Patcher:BdApi.Patcher, controller, targets:compatibilityTargets});
+                        bridge.runtime = {backdrop,inspector};
+                        window[compatibilitySlot] = bridge;
+                    }
+                    Internal.compatibilityGeneration = bridge.bindLegacy({legacy:createElementPatches,targets:compatibilityTargets});
+                    const {backdrop,inspector} = bridge.runtime;
+                    const scrimClass = BDFDB.disCN.backdrop, layerClass = BDFDB.disCN.itemlayercontainer;
+                    if (!scrimClass || !layerClass || /BDFDB_undefined/.test(scrimClass + layerClass)) throw Error("Current native backdrop/layer classes are unavailable");
+                    backdrop.bind({scrimClass,layerClass});
+                    const compatibility = BDFDBCompatBindings.createBindings({BDFDB, React:LibraryModules.React, controller:bridge.controller,
+                        document, ui:BDFDBCompatUI, profile:BDFDBCompatProfile, extra:BDFDBCompatExtra, upload:BDFDBCompatUpload, classTokens:BDFDBCompatTokens});
+                    bridge.activateCompatibility(Internal.compatibilityGeneration,compatibility);
+                    if (!compatibilityFrameActive) bridge.stop(Internal.compatibilityGeneration);
+                    BDFDB.ClassCompatibility = {getStatus: () => Object.assign({}, bridge.controller.getStatus(),
+                        {backdrop:backdrop.getStatus(),bridge:bridge.getStatus(),inspector:inspector.getStatus()})};
+                }
+                catch (error) {
+                    BDFDB.LogUtils.error(["Class compatibility initialization failed",error]);
+                    BDFDB.ClassCompatibility = {getStatus: () => ({active:false,bound:false,errors:[error.message || String(error)]})};
+                    // Initial failure preserves the established legacy path.
+                    // A persistent bridge already owns that path on reevaluation.
+                    if (!window[compatibilitySlot]) {
+						BDFDB.PatchUtils.patch(BDFDB, LibraryModules.React, "createElement", createElementPatches);
+						if (Internal.LibraryModules.InternalReactUtils) for (let key in Internal.LibraryModules.InternalReactUtils) if (typeof Internal.LibraryModules.InternalReactUtils[key] == "function" && Internal.LibraryModules.InternalReactUtils[key].toString().indexOf("return{$$typeof:") > -1) BDFDB.PatchUtils.patch(BDFDB, Internal.LibraryModules.InternalReactUtils, key, createElementPatches, {ignoreErrors: true});
+                    }
+                }
 				
 				let languageChangeTimeout;
 				BDFDB.PatchUtils.patch(BDFDB, Internal.LibraryModules.AppearanceSettingsUtils, "updateLocale", {after: e => {
@@ -8760,10 +10392,13 @@ module.exports = (_ => {
 			this.loaded = true;
 		}
 		start () {
+			compatibilityFrameActive = true;
 			if (!this.loaded) this.load();
+			if (Internal && window[compatibilitySlot]) window[compatibilitySlot].start(Internal.compatibilityGeneration);
 		}
 		stop () {
-			
+			compatibilityFrameActive = false;
+			if (Internal && window[compatibilitySlot]) window[compatibilitySlot].stop(Internal.compatibilityGeneration);
 		}
 		
 		getSettingsPanel () {
