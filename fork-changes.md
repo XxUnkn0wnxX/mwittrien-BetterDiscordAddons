@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-10-28** (Australia/Melbourne).
+Last updated: **2026-10-29** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,15 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `2cda4b90248e93558fe41311ba33af3cfc1261e8`. The October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
-This checkpoint completes the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — October 29
+
+The fork includes all five upstream commits through `2cda4b9024`, including the PersonalPins 2.3.8, ImageUtilities 5.6.8 and BetterNsfwTag 1.3.4 updates. Both badge-related data changes now follow upstream: `Badge` discovery requires `numberBadge`, `base` and `iconBadge`, and the `badgetextbadge` alias is removed. The current data therefore exposes **1,619 aliases**. The other fork compatibility mappings, plugin code and stylesheet are retained.
+
+The October 28 results below describe the earlier 1,620-alias checkpoint. They are not a new runtime acceptance result for this upstream sync.
 
 ## BDFDB resource downloads
 
@@ -177,11 +183,11 @@ voicedetailspingforeground [owned-compatibility-marker]
 
 ## Class compatibility changes
 
-The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). All **1,620 existing public alias names** are preserved. The earlier accepted checkpoints contain **126 changed data entries or fields** relative to the clean upstream branch. Subsequent accepted batches add one isolated native menu-image mapping, three owned style values, and five native activity/name-container repairs. The earlier checkpoint covered 69 distinct alias targets, followed by the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
+The production mapping changes are in [Library/_res/0BDFDB.data.json](Library/_res/0BDFDB.data.json). The October 28 checkpoint preserved all **1,620 existing public alias names**; the October 29 upstream sync removes one as described above. The earlier accepted checkpoints contained **126 changed data entries or fields** relative to their original clean upstream base. Subsequent accepted batches added one isolated native menu-image mapping, three owned style values, and five native activity/name-container repairs. The earlier checkpoint covered 69 distinct alias targets, followed by the 32 verification targets described below. Their shared fixes include native discovery and unloaded lookups as well as repairs to reported missing aliases.
 
 | Area | Change and verified behavior |
 | --- | --- |
-| Badges | Match the current `numberBadge` / `iconBadge` export without requiring the removed `textBadge` property. Restores seven base, icon, numeric and shape aliases. The latest 32-target batch below restores the separate `badgetextbadge` alias. |
+| Badges | The October 28 repair matched `numberBadge` / `iconBadge` and restored seven base, icon, numeric and shape aliases. Its separate `badgetextbadge` repair is superseded by the October 29 upstream sync: discovery also requires `base`, and the text-badge alias is removed. |
 | Image modal | Add verified lazy suffixes for `ModalCarouselNav` and `ImageModalMediaWrapper`, restoring the three navigation aliases and the media wrapper before their modules have loaded. |
 | Animations | Add the current `Animations` suffix for the four mapped animation classes. |
 | Screen sharing | Remove the obsolete `gradientTop` descriptor requirement and use the current `CallScreenshare` suffix for the three controls aliases. |
