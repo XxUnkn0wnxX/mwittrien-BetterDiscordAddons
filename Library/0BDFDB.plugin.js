@@ -1,7 +1,8 @@
 /**
  * @name BDFDB
- * @author XxUnkn0wnxX
- * @credits Original BDFDB author: DevilBro (Discord ID 278543574059057154)
+ * @author DevilBro
+ * @authorId 278543574059057154
+ * @maintainer XxUnkn0wnxX
  * @version 4.5.8
  * @description Required Library for DevilBro's Plugins
  * @invite Jx3TjNS
