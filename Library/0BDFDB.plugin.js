@@ -1,15 +1,15 @@
 /**
  * @name BDFDB
- * @author DevilBro
- * @authorId 278543574059057154
+ * @author XxUnkn0wnxX
+ * @credits Original BDFDB author: DevilBro (Discord ID 278543574059057154)
  * @version 4.5.8
  * @description Required Library for DevilBro's Plugins
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
  * @patreon https://www.patreon.com/MircoWittrien
- * @website https://mwittrien.github.io/
- * @source https://github.com/mwittrien/BetterDiscordAddons/tree/master/Library/
- * @updateUrl https://mwittrien.github.io/BetterDiscordAddons/Library/0BDFDB.plugin.js
+ * @website https://github.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/tree/develop
+ * @source https://github.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/tree/develop/Library/
+ * @updateUrl https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/0BDFDB.plugin.js
  */
 
 module.exports = (_ => {

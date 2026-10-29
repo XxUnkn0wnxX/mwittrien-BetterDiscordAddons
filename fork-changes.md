@@ -23,19 +23,22 @@ The fork includes all five upstream commits through `2cda4b9024`, including the 
 
 The October 28 results below describe the earlier 1,620-alias checkpoint. They are not a new runtime acceptance result for this upstream sync.
 
-## BDFDB resource downloads
+## BDFDB updates and resource downloads
 
-[Library/0BDFDB.plugin.js](Library/0BDFDB.plugin.js) now obtains the resource metadata and JSON/CSS resources from this fork’s `develop` branch:
+[Library/0BDFDB.plugin.js](Library/0BDFDB.plugin.js), its self-update checks, and its resource metadata and JSON/CSS downloads use this fork’s `develop` branch. Upstream changes are integrated manually under the fork maintenance policy.
 
 | Resource | Patched source |
 | --- | --- |
+| Main plugin update | `https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/0BDFDB.plugin.js` |
 | Resource hash metadata | `https://api.github.com/repos/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/contents/Library/_res?ref=develop` |
 | Data JSON | `https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/0BDFDB.data.json` |
 | Raw stylesheet | `https://raw.githubusercontent.com/XxUnkn0wnxX/mwittrien-BetterDiscordAddons/develop/Library/_res/0BDFDB.raw.css` |
 
 The metadata endpoint deliberately has no slash before `?ref=develop`: the slash form redirected without preserving the branch query during verification.
 
-The plugin’s upstream `@updateUrl` and `PluginUrlMap.BDFDB` entry remain unchanged. A future upstream plugin update can therefore replace this temporary downloader override.
+Both `@updateUrl` and `PluginUrlMap.BDFDB` point to the main plugin URL above. The plugin's `@website` and `@source` also identify this fork. This supersedes the October 28 choice to retain upstream self-updates.
+
+The update metadata identifies `XxUnkn0wnxX` as the fork maintainer, while `@credits` preserves DevilBro's original authorship and Discord ID. The original donation links and BDFDB's internal original-author ID remain unchanged. This identity distinction is necessary for the installed BetterDiscord updater: it also considers Addon Store candidates, and a shared author or author ID can make an upstream candidate eligible despite a different repository URL. Once the new metadata is loaded, an upstream version increase cannot select that mismatched Store candidate; updates published to this fork remain eligible. The plugin name, filename and version are unchanged.
 
 The existing resource cache compares saved remote metadata with the fetched remote hashes. It does not hash the local edited resource file to decide whether it should be downloaded again. Local testing can therefore retain patched resources while the saved metadata still matches the remote branch. Missing resources, changed remote hashes, or a replacement plugin can cause resources to be downloaded again. Deleting the installed JSON or CSS during local testing can retrieve the remote copy before the local repairs have been published.
 
