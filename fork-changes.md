@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-10-29** (Australia/Melbourne).
+Last updated: **2026-11-01** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,21 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `2cda4b90248e93558fe41311ba33af3cfc1261e8`. The October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`. The October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 1
+
+The fork incorporates all seven additional upstream commits through `bc83a6d6df`, preserving their history. This includes BDFDB's JavaScript cleanup, the official Badge component-map and ImageModal discovery updates, ImageUtilities 5.6.9, the plugin-list changes and the BasicBackground title-bar update.
+
+The incoming changes do not replace any of the fork's remaining class-mapping or owner-hook repairs. All **1,619 public aliases**, class descriptors, custom class groups and the compatibility stylesheet are retained. The BDFDB JavaScript remains equivalent after the reviewed formatting changes, an unused parameter on a private cache helper and redundant loop braces. The three changed data descriptors follow upstream exactly; they are separate from the fork's ImageModalMediaWrapper and ModalCarouselNav class repairs. No hotpatch is retired in this batch.
+
+Local checks compare the complete JavaScript syntax trees and all **12,952 class/selector getter forms** against the recorded October 28 snapshots. These checks preserve the existing repairs; they do not establish a fresh Discord UI pass or prove the new ImageModal default-export discovery against the current running client. The removed TextBadge map entry continues to use the existing `div` fallback through BDFDB's element-creation helper when no native component is available.
+
+ImageUtilities is accepted unchanged from upstream. A focused check of its production `processLazyImageZoomable` callback confirms that 5.6.9 omits the original rendered image when its footnote branch runs; its details component renders metadata only. The inspected installed plugin already matched these upstream bytes before this sync. This is an existing upstream-owned behavior to check in the affected UI, rather than a replacement for a fork repair or a newly observed live regression.
+
+The compatibility layer remains temporary. Official replacements take priority once their consumers and the remaining repairs are verified. The lasting functional fork difference is the BDFDB update/resource routing below. BDFDB follows upstream's version, including official increases; this sync leaves it at upstream's **4.5.8**.
 
 ## Upstream sync — October 29
 
