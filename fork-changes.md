@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-11-01** (Australia/Melbourne).
+Last updated: **2026-11-02** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,19 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`. The October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`. The November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 2
+
+The fork incorporates all four additional upstream commits through `5c5f63ffe8`, preserving their history. This includes updated user-badge assets and ImageModal/user-badge discovery, ShowBadgesInChat **2.1.8**, and BlurpleRecolor's code-title color variable.
+
+The five changed JSON sections are upstream-owned constants and component/patch discovery descriptors. They do not replace the fork's Badge class mapping, ImageModalMediaWrapper or ModalCarouselNav repairs. All **1,619 public aliases** and every class-related JSON section remain unchanged; the main BDFDB JavaScript and compatibility stylesheet are byte-identical to the previous fork revision. Current fork routing, original authorship, separate maintainer and upstream BDFDB **4.5.8** are retained. **No repairs are retired or adapted.**
+
+Source validation checks the exact five-section JSON delta and unchanged repair blobs. Focused fixtures exercise the production ShowBadgesInChat callbacks for all **88 badge entries**, including content-image URLs, and **24 settings groups**, including group/tier filtering. ShowBadgesInChat and BlurpleRecolor match upstream exactly. These checks do not establish current native module discovery, export shape or visible Discord UI behavior.
+
+The badge-data and ShowBadgesInChat updates form a coordinated upstream change: 2.1.8 passes filename assets through `iconSrc`, while 2.1.7 passes them through `icon`. Mixed installed versions can therefore affect settings previews. This source sync does not manually copy installed files or claim live acceptance.
 
 ## Upstream sync — November 1
 
@@ -27,7 +37,7 @@ Local checks compare the complete JavaScript syntax trees and all **12,952 class
 
 ImageUtilities is accepted unchanged from upstream. A focused check of its production `processLazyImageZoomable` callback confirms that 5.6.9 omits the original rendered image when its footnote branch runs; its details component renders metadata only. The inspected installed plugin already matched these upstream bytes before this sync. This is an existing upstream-owned behavior to check in the affected UI, rather than a replacement for a fork repair or a newly observed live regression.
 
-The compatibility layer remains temporary. Official replacements take priority once their consumers and the remaining repairs are verified. The lasting functional fork difference is the BDFDB update/resource routing below. BDFDB follows upstream's version, including official increases; this sync leaves it at upstream's **4.5.8**.
+The compatibility layer remains temporary. Official replacements take priority once their consumers and the remaining repairs are verified. The current operational fork differences include the BDFDB update/resource routing below. BDFDB follows upstream's version, including official increases; this sync leaves it at upstream's **4.5.8**.
 
 ## Upstream sync — October 29
 
