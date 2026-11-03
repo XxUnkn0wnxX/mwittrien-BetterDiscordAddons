@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-11-02** (Australia/Melbourne).
+Last updated: **2026-11-03** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,17 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`. The November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`. The November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 3
+
+The fork incorporates all three additional upstream commits through `ab3a8e958e`, preserving their history. BDFDB's NumberBadge now uses upstream's new `badgestyle` alias, mapped to Heading's `experimental/body-xs/semibold` property. The existing `eyebrow` alias and all **1,619 previous public aliases** remain; the addition brings the total to **1,620**. BlurpleRecolor's context-menu CSS update is included in repository history and excluded from the requested live synchronization.
+
+The NumberBadge implementation and Heading descriptor were already upstream-owned. The JavaScript delta is exactly the official typography substitution, and the data delta is exactly the added alias. All remaining fork repairs, other data bytes, the compatibility stylesheet, fork routing, original authorship, separate maintainer and upstream BDFDB **4.5.8** are retained. **No repairs are retired or adapted.**
+
+Focused source checks exercise the production NumberBadge class for count widths and labels, supplied/default shapes, custom classes, style precedence, color suppression and callback forwarding. These checks establish source behavior and repair preservation; the running Discord renderer's Heading export and visible badge typography remain unverified.
 
 ## Upstream sync — November 2
 
