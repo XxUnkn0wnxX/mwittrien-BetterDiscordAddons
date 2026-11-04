@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-11-03** (Australia/Melbourne).
+Last updated: **2026-11-04** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,17 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`. The November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `4df9b26d213230d456cfc9a86e10c4a21cb65545`. The November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 4
+
+The fork incorporates upstream commit `4df9b26d21`, preserving its history. Its only production change updates `DiscordClassModules.Heading.props` from `eyebrow` / `code` to `display-lg` / `body-xs/semibold`. This changes how BDFDB locates the Heading class module. The existing `badgestyle` and `eyebrow` output mappings remain unchanged, as do all **1,620 public aliases**.
+
+The Heading descriptor was already upstream-owned. All other data bytes, the main BDFDB JavaScript, compatibility stylesheet, remaining fork repairs, routing, attribution and upstream BDFDB **4.5.8** are retained. **No repairs are retired or adapted.** The existing proxy checks cached modules against the updated descriptor and rejects stale entries without a manual cache reset.
+
+Focused checks exercise the production finder, class proxy and alias resolver for loaded discovery, valid-cache reuse, stale/missing cache recovery and missing-alias fallback. Discovery fields and alias output fields are checked separately; matching the new discovery fields alone does not prove that either output field exists in the running renderer. Current native exports and visible typography remain separate from source validation and live file parity.
 
 ## Upstream sync — November 3
 
