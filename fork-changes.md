@@ -13,9 +13,17 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `4df9b26d213230d456cfc9a86e10c4a21cb65545`. The November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `70e0bf8a058a7df7a55f2f2e25eeb0784ab10530`. The earlier November 4 sync used `4df9b26d213230d456cfc9a86e10c4a21cb65545`; the November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 4 (badge style)
+
+The fork incorporates upstream commit `70e0bf8a05`, preserving its history. Its only production change maps `badgestyle` to Heading's `body-xs/semibold` field, replacing `experimental/body-xs/semibold`. This aligns the NumberBadge styling alias with the Heading discovery fields accepted in the preceding update.
+
+The alias was introduced by upstream and has no fork repair to retire. All **1,620 alias names** remain; every other mapping and data byte, the main JavaScript, compatibility stylesheet, remaining repairs, routing, attribution and BDFDB **4.5.8** are preserved. **No repairs are retired or adapted.**
+
+Focused production finder/proxy/getter checks distinguish the standard and experimental fields and reproduce the old fallback versus the corrected result on a loaded module exposing only the standard field. Cache and fallback checks also pass. Current native exports and visible UI behavior remain separate from these source fixtures and live file parity.
 
 ## Upstream sync — November 4
 
