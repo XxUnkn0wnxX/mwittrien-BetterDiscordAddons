@@ -286,7 +286,12 @@
 		}},
 		"NitroUtils": {"props": ["canUseIncreasedMessageLength", "canUsePremiumGuildMemberProfile"]},
 		"NotificationSettingsUtils": {"props": ["setDesktopType", "setTTSType"]},
-		"PlatformUtils": {"props": ["isAndroid", "isWindows"]},
+		"PlatformUtils": {"strings": ["OculusBrowser", "win", "darwin"], "exported": false, "value": "exports", "map": {
+			"isAndroid": ["\"android\"==="],
+			"isLinux": ["\"linux\"==="],
+			"isMac": ["\"darwin\"==="],
+			"isWindows": ["/^win/.test"]
+		}},
 		"PermissionRoleUtils": {"strings": ["permission:", ".getMember", "excludeGuildPermissions"], "exported": false, "value": "exports", "map": {
 			"can": ["excludeGuildPermissions", "permission:"]
 		}},
@@ -526,7 +531,7 @@
 		"GuildItem": {"strings": ["guildNode:", "lowerBadge:", "aria-setsize"], "noSearch": true},
 		"GuildItemWrapper": {"strings": ["guildNode:", "lowerBadge:", "isUnavailable"], "noSearch": true},
 		"GuildItemIcon": {"strings": ["\"always\"", ".acronym", "width:48,height:48"], "noSearch": true},
-		"GuildsBar": {"strings": ["heightBeforeGuilds", "disableAppDownload", "handleJumpToGuild"], "noSearch": true},
+		"GuildsBar": {"strings": ["themeOverride", "disableAppDownload", "handleJumpToGuild"], "noSearch": true},
 		"GuildsBarHeader": {"strings": ["GUILD_MEMBER_VERIFICATION_FOR_HUB", "isCurrentUserGuest", "hideDms"], "noSearch": true},
 		"GuildsBarTree": {"strings": ["guildDiscoveryButton", "disableAppDownload", "getGuildsTree"], "noSearch": true},
 		"GuildSidebar": {"strings": ["\"guildsnav\"", "unreadMentionsIndicatorBottom"]},

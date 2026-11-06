@@ -3,7 +3,7 @@
  * @author DevilBro
  * @authorId 278543574059057154
  * @maintainer XxUnkn0wnxX
- * @version 4.5.8
+ * @version 4.5.9
  * @description Required Library for DevilBro's Plugins
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -3041,11 +3041,24 @@ module.exports = (_ => {
 					}
 					return Internal.findModule("proto", JSON.stringify(protoProps), m => Internal.checkModuleProtos(m, protoProps) && m, config);
 				};
+				Internal.findClassValue = function (m, prop) {
+					try {
+						for (let v of Object.values(m)) if (typeof v == "string") {
+							let className = v.split(" ").find(n => n.startsWith(`${prop}_`) || n.endsWith(`-${prop}`));
+							if (className) return className;
+						}
+					}
+					catch (err) {}
+					return "";
+				};
+				Internal.hasClassProp = function (m, prop) {
+					return typeof m[prop] == "string" || !!Internal.findClassValue(m, prop);
+				};
 				BDFDB.ModuleUtils.findStringObject = function (props, config = {}) {
 					let nonProps = [config.nonProps].flat(10).filter(n => n);
 					let firstReturn = BDFDB.ModuleUtils.find(m => {
 						let amount = Object.keys(m).length;
-						return (!config.length || (config.smaller ? amount < config.length : amount == config.length)) && [props].flat(10).every(prop => typeof m[prop] == "string") && (!nonProps.length || nonProps.every(prop => typeof m[prop] == "undefined")) && m;
+						return (!config.length || (config.smaller ? amount < config.length : amount == config.length)) && [props].flat(10).every(prop => Internal.hasClassProp(m, prop)) && (!nonProps.length || nonProps.every(prop => !Internal.hasClassProp(m, prop))) && m;
 					}, {all: config.all, defaultExport: config.defaultExport});
 					if (!config.all && firstReturn) return firstReturn;
 					let secondReturn = BDFDB.ModuleUtils.find(m => {
@@ -6277,7 +6290,7 @@ module.exports = (_ => {
 						if (!InternalData.DiscordClassModules[item]) return;
 						if (item in classCache) {
 							let m = Internal.getWebModuleReq().c[classCache[item]]?.exports;
-							if (m && m != window && [InternalData.DiscordClassModules[item].props].flat(10).every(p => typeof m[p] == "string")) return DiscordClassModules[item] = m;
+							if (m && m != window && [InternalData.DiscordClassModules[item].props].flat(10).every(p => Internal.hasClassProp(m, p))) return DiscordClassModules[item] = m;
 							delete classCache[item];
 						}
 						DiscordClassModules[item] = BDFDB.ModuleUtils.findStringObject(InternalData.DiscordClassModules[item].props, Object.assign({}, InternalData.DiscordClassModules[item]));
@@ -6301,27 +6314,35 @@ module.exports = (_ => {
 				
 				const DiscordClasses = Object.assign({}, InternalData.DiscordClasses);
 				BDFDB.DiscordClasses = Object.assign({}, DiscordClasses);
+				const callWarning = (...strings) => {
+					let text = [strings].flat(10).filter(n => n);
+					if (!callWarning[text]) {
+						BDFDB.LogUtils.warn(text);
+						callWarning[text] = true;
+						BDFDB.TimeUtils.timeout(_ => {delete callWarning[text];}, 5000);
+					}
+				};
 				Internal.getDiscordClass = function (item, selector) {
 					let className, fallbackClassName, notFoundAndLazyloaded = false;
 					className = fallbackClassName = `${Internal.DiscordClassModules.BDFDB.BDFDBundefined}_${Internal.generateClassId()}`;
 					if (DiscordClasses[item] === undefined) {
-						BDFDB.LogUtils.warn([item, "not found in DiscordClasses"]);
+						callWarning([item, "not found in DiscordClasses"]);
 						return className;
 					} 
 					else if (!BDFDB.ArrayUtils.is(DiscordClasses[item]) || DiscordClasses[item].length != 2) {
-						BDFDB.LogUtils.warn([item, "is not an Array of Length 2 in DiscordClasses"]);
+						callWarning([item, "is not an Array of Length 2 in DiscordClasses"]);
 						return className;
 					}
 					else if (Internal.DiscordClassModules[DiscordClasses[item][0]] === undefined) {
 						if (!InternalData.LazyloadedClassModules || !InternalData.LazyloadedClassModules[DiscordClasses[item][0]]) {
-							BDFDB.LogUtils.warn([DiscordClasses[item][0], "not found in DiscordClassModules"]);
+							callWarning([DiscordClasses[item][0], "not found in DiscordClassModules"]);
 							return className;
 						}
 						else notFoundAndLazyloaded = true;
 					}
-					else if ([DiscordClasses[item][1]].flat().every(prop => Internal.DiscordClassModules[DiscordClasses[item][0]][prop] === undefined && !(JSON.stringify(Internal.DiscordClassModules[DiscordClasses[item][0]]).split(" ").find(n => n.startsWith(`${prop}_`) || n.endsWith(`-${prop}`)) || "").split("\"")[0])) {
+					else if ([DiscordClasses[item][1]].flat().every(prop => Internal.DiscordClassModules[DiscordClasses[item][0]][prop] === undefined && !Internal.findClassValue(Internal.DiscordClassModules[DiscordClasses[item][0]], prop))) {
 						if (!InternalData.LazyloadedClassModules || !InternalData.LazyloadedClassModules[DiscordClasses[item][0]]) {
-							BDFDB.LogUtils.warn([DiscordClasses[item][1], "not found in", DiscordClasses[item][0], "in DiscordClassModules"]);
+							callWarning([DiscordClasses[item][1], "not found in", DiscordClasses[item][0], "in DiscordClassModules"]);
 							return className;
 						}
 						else notFoundAndLazyloaded = true;
@@ -6331,7 +6352,7 @@ module.exports = (_ => {
 						DiscordClassModules[DiscordClasses[item][0]] = Object.assign({}, DiscordClassModules[item], {[DiscordClasses[item][1]]: className});
 					}
 					else for (let prop of [DiscordClasses[item][1]].flat()) {
-						className = Internal.DiscordClassModules[DiscordClasses[item][0]][prop] || (JSON.stringify(Internal.DiscordClassModules[DiscordClasses[item][0]]).split(" ").find(n => n.startsWith(`${prop}_`) || n.endsWith(`-${prop}`)) || "").split("\"")[0];
+						className = Internal.DiscordClassModules[DiscordClasses[item][0]][prop] || Internal.findClassValue(Internal.DiscordClassModules[DiscordClasses[item][0]], prop);
 						if (className) break;
 						else className = fallbackClassName;
 					}

@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-11-04** (Australia/Melbourne).
+Last updated: **2026-11-07** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,19 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `70e0bf8a058a7df7a55f2f2e25eeb0784ab10530`. The earlier November 4 sync used `4df9b26d213230d456cfc9a86e10c4a21cb65545`; the November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `9fe1b591a336d079926c9cdac53cc733ef9cf212`. The latest November 4 sync used `70e0bf8a058a7df7a55f2f2e25eeb0784ab10530`; the earlier November 4 sync used `4df9b26d213230d456cfc9a86e10c4a21cb65545`; the November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 7
+
+The fork incorporates all five incoming upstream commits through `9fe1b591a3`, including the merge of PR #3419, and follows the official BDFDB **4.5.9** version. Upstream adds value-based class lookup for minified CSS export keys, uses it in discovery, persisted-cache checks and alias getters, and suppresses duplicate lookup warnings for five seconds. The data changes update PlatformUtils discovery and its four platform-function mappings, plus GuildsBar's `themeOverride` signature.
+
+The changed finder/cache/getter blocks were already upstream-owned. None of the changes replaces a corrected owner descriptor, alias target, lazy suffix, compatibility marker/style, owner hook, cache-isolation repair or lifecycle guard. **All existing fork repairs are retained; none is retired or adapted.** All **1,620 aliases**, class-related data, compatibility CSS, fork routing and original-author/separate-maintainer attribution remain intact. The version-header conflict was resolved by retaining the maintainer and accepting upstream's official version.
+
+Focused production-code checks cover named and minified exports, composed strings, class-token matching, descriptor exclusions and lengths, cache reuse/rejection, selectors and lazy fallback, and warning suppression with fake timers. Historical source fixtures check representative repaired owners without claiming current renderer coverage. The actual PlatformUtils mapping proxy is exercised for all four callable platform methods and named-export precedence; GuildsBar's new signature is checked against its existing consumer contract.
+
+Named exports retain their full class composition; value-based recovery returns one matching token. Cached positive-property checks still do not revalidate descriptor lengths or exclusions, an existing upstream limitation. Source validation and live file parity do not establish current native module discovery or visible UI behavior.
 
 ## Upstream sync — November 4 (badge style)
 
