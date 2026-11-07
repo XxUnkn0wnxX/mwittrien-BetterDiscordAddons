@@ -1839,18 +1839,6 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
     height: 12px;
 }
 
-/* legacy-native/422300.js maps ring -> ring__349e5. Keep the neutral ring
- * geometry; the separate native active-state border is not implied here. */
-.bdfdb-compat-guildfavoritesring {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    box-sizing: border-box;
-}
-
 /* legacy-native/350583.js maps each fontSize*Padding token. The two live
  * editor classes own their dynamic padding and are explicitly excluded. */
 .bdfdb-compat-textareafontsize12padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {

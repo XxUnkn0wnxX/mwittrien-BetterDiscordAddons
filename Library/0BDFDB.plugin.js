@@ -41,7 +41,6 @@ module.exports = (_ => {
 	"dmaddpopout": "bdfdb-compat-dmaddpopout",
 	"filedownloadbutton": "bdfdb-compat-filedownloadbutton",
 	"goliveclickablegamewrapper": "clickableGameWrapper__5dec7",
-	"guildfavoritesring": "bdfdb-compat-guildfavoritesring",
 	"guildheaderbutton": "bdfdb-compat-guildheaderbutton",
 	"guildheaderbuttonopen": "bdfdb-compat-guildheaderbuttonopen",
 	"modalminitext": "bdfdb-compat-modalminitext",
@@ -1335,12 +1334,6 @@ module.exports = (_ => {
 		                    role:"presentation",children:root});
 		            }
 		        },
-		        favoritesNav: {
-		            after(event) {
-		                return mapTree(event.returnValue, element=>hasClass(element,context.favoriteIconClass),element=>
-		                    React.createElement("div",{key:element.key,className:classFor("guildfavoritesring"),children:element}));
-		            }
-		        },
 		        unreadBar: {
 		            after(event) {
 		                const root=event.returnValue;
@@ -1361,7 +1354,6 @@ module.exports = (_ => {
 		    {name:"dmInvite",sourceOwner:"452015",kind:"class",strings:["handleInviteUsers","_promoteDMToGroupDM","renderModalInput","PRIVATE_CHANNEL_INVITE_MODAL_OPENED"]},
 		    {name:"recentPrivateAvatar",sourceOwner:"173842",strings:["channel:","isGroupDM()","getGuild","aria-hidden","SIZE_32"],maxLength:800,adapter:"function"},
 		    {name:"menuAccessory",sourceOwner:"980707",strings:["case\"image\":","imageAccessory"],adapter:"function"},
-		    {name:"favoritesNav",sourceOwner:"242816",strings:["favoriteGuildMuted","favorite-server-context","getFavoriteChannels","StarIcon"],maxLength:4000,adapter:"function"},
 		    {name:"unreadBar",sourceOwner:"173860",kind:"class",strings:["getAnimatedStyle","animateOut","reverse:","text:","hide:"]}
 		];
 		return {createHandlers,CONTRACTS};
@@ -1538,10 +1530,8 @@ module.exports = (_ => {
 		            if(!readModalContext)return null;
 		            value=upload.createHandlers({...base,readModalContext}).uploadModal;
 		        }
-		        else if(["welcomeGlyph","welcomeEdit","dmInvite","recentPrivateAvatar","favoritesNav"].includes(name)) {
-		            const favoriteIconClass=name==="favoritesNav"?BDFDB.disCN.guildfavoritesicon:undefined;
-		            if(name==="favoritesNav" && (!favoriteIconClass || favoriteIconClass.includes("BDFDB_undefined")))return null;
-		            value=extra.createHandlers({...base,findDOMNode:instance=>BDFDB.ReactUtils.findDOMNode(instance),favoriteIconClass})[name];
+		        else if(["welcomeGlyph","welcomeEdit","dmInvite","recentPrivateAvatar"].includes(name)) {
+		            value=extra.createHandlers({...base,findDOMNode:instance=>BDFDB.ReactUtils.findDOMNode(instance)})[name];
 		        }
 		        else {
 		            const ctx={...base};
