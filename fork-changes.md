@@ -17,6 +17,12 @@ The current comparison base is upstream commit `f8d684323692b13e1126db3ad461b7ca
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
 
+## Targeted SearchBar descriptor repair — November 7
+
+The `SearchBar` class descriptor now identifies the native owner by `container`, `hasTrailing` and `input`. The captured current owner exposes those three class strings; it does not expose `expressiveWrapper`. That name belongs to a separate button style module. BDFDB's existing `searchbar` and `searchbarinput` aliases continue to resolve through `container` and `input`, respectively, and BetterFriendList continues to use the `searchbar` alias.
+
+This changes only the descriptor leaf. All 1,618 public aliases and the other data entries remain unchanged; the plugin and compatibility stylesheet are untouched. The fresh upstream comparison still has the stale descriptor, so no upstream equivalent is available to retire this repair. Retire or adapt it when upstream updates or removes the corresponding descriptor with verified behavior for the SearchBar owner and its existing consumers. Focused static checks exercise the production finder, alias resolver, named and value-mangled export shapes, wrong-owner rejection and stale-cache rediscovery. They do not establish a new live Discord UI result.
+
 ## Upstream sync — November 7 (class, query and theme updates)
 
 The fork incorporates all 23 additional upstream commits through `f8d6843236`. BDFDB remains at the official **4.5.9** version. Value-based class lookup now preserves the class-list tail starting at the matched token, including following modifiers. Upstream adds `StringUtils.encodeForAPI` and moves three ImageUtilities query sites and one LastMessageDate site to it; the plugins advance to **5.7.0** and **1.5.8**, respectively. The new encoder applies `encodeURIComponent` to each key and value, including serializing null as the literal `null`.

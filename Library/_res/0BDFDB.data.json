@@ -1743,7 +1743,7 @@
 		"Roles": {"props": ["rolePill", "roles", "rolePillBorder"]},
 		"Scrollbar": {"props": ["scrollbar", "scrollbarGhost"]},
 		"Scroller": {"props": ["disableScrollAnchor", "none", "fade"]},
-		"SearchBar": {"props": ["container", "expressiveWrapper", "input"]},
+		"SearchBar": {"props": ["container", "hasTrailing", "input"]},
 		"SearchBarIcon": {"props": ["clear", "icon", "pointer"]},
 		"SearchPopout": {"props": ["answerPill", "groupHeader"]},
 		"SearchPopoutDatepicker": {"props": ["datePicker", "inputField"]},
