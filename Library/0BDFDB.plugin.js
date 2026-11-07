@@ -3044,8 +3044,8 @@ module.exports = (_ => {
 				Internal.findClassValue = function (m, prop) {
 					try {
 						for (let v of Object.values(m)) if (typeof v == "string") {
-							let className = v.split(" ").find(n => n.startsWith(`${prop}_`) || n.endsWith(`-${prop}`));
-							if (className) return className;
+							let classes = v.split(" ");
+							for (let i in classes) if (classes[i].startsWith(`${prop}_`) || classes[i].endsWith(`-${prop}`)) return classes.slice(i).join(" ");
 						}
 					}
 					catch (err) {}
@@ -6018,6 +6018,9 @@ module.exports = (_ => {
 					let ele = document.createElement("div");
 					ele.innerText = string;
 					return ele.innerHTML;
+				};
+				BDFDB.StringUtils.encodeForAPI = function (object) {
+					return Object.entries(object).map(n => `${encodeURIComponent(n[0])}=${encodeURIComponent(n[1])}`).join("&");
 				};
 				BDFDB.StringUtils.regEscape = function (string) {
 					return typeof string == "string" && string.replace(/([\-\/\\\^\$\*\+\?\.\(\)\|\[\]\{\}])/g, "\\$1");
