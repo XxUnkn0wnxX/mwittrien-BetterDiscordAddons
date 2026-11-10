@@ -1802,12 +1802,6 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 	z-index: 1;
 }
 
-[REPLACE_CLASS_colorred] {
-	color: var(--status-danger);
-}
-[REPLACE_CLASS_coloryellow] {
-	color: var(--status-warning);
-}
 [REPLACE_CLASS_tooltipyellow] {
 	background-color: var(--background-feedback-warning);
 	color: var(--text-feedback-warning);
@@ -1868,49 +1862,6 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 .bdfdb-compat-textareafontsize24padding:not(.slateTextArea_ec4baf):not(.textArea__74017) {
     padding-top: 5px;
     padding-bottom: 6px;
-}
-
-/* PRIVATE candidate: current native solo-emoji sizing from the pinned profile
- * status stylesheet. This makes the public class usable as a styling utility,
- * as well as a marker on the native emoji. State changes must remove the marker.
- * Source: 82171.3438527a5e2816c3.css, statusEmoji_ab8609:not(:has(~.statusText_ab8609)). */
-.bdfdb-compat-status-solo-emoji {
-    max-height: 32px;
-    max-width: 32px;
-    min-height: 32px;
-    min-width: 32px;
-}
-
-/* Native777003 applied this utility only for an explicit lastSection prop.
- * It is not a selector for whichever DOM section happens to be last. */
-.bdfdb-compat-profile-last-section {
-    padding-bottom: var(--space-12, 12px);
-}
-
-/* The native clickable avatar already supplies its hover dimming. Add only
- * the legacy non-interactive text overlay, with no extra dark background. */
-.bdfdb-compat-avatar-hint {
-    display: block;
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 150ms ease-out;
-}
-.user-profile-popout .bdfdb-compat-avatar-wrapper-normal:hover > .bdfdb-compat-avatar-hint,
-.user-profile-popout .bdfdb-compat-avatar-wrapper-normal:focus-within > .bdfdb-compat-avatar-hint {
-    opacity: 1;
-}
-.bdfdb-compat-avatar-hint-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    color: white;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
 }
 
 /* Private compatibility utility copies: exact captured Discord CSS rules. */

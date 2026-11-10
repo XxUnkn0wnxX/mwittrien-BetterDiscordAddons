@@ -1,6 +1,6 @@
 # Fork changes
 
-Last updated: **2026-11-07** (Australia/Melbourne).
+Last updated: **2026-11-11** (Australia/Melbourne).
 
 This fork carries temporary BDFDB compatibility fixes for changes in Discord’s frontend classes. The aim is to preserve BDFDB’s existing class aliases and the plugins that consume them through targeted descriptors, mappings and owner-specific compatibility hooks.
 
@@ -13,9 +13,19 @@ Upstream remains [mwittrien/BetterDiscordAddons](https://github.com/mwittrien/Be
 | `upstream-master` | Clean upstream comparison and recovery base | Pull from `upstream/master`; push to `origin/upstream-master` |
 | `develop` | Fork-specific compatibility work | Pull and push through `origin/develop` |
 
-The current comparison base is upstream commit `6af024ff4f9a325cfd51afe14f0a901e67d693a1`. The preceding favorites sync used `1a43b7f6baf3da9c61862a44346a8bafec8f2bc4`. The preceding ServerColumns sync used `bf516c96e82959e0c820e68a880cd6dc1770a867`. The image-viewer sync used `0028f82f182a0ff93459cea5a29426613e782490`. The preceding November 7 sync used `f8d684323692b13e1126db3ad461b7ca528e2032`. The first November 7 sync used `9fe1b591a336d079926c9cdac53cc733ef9cf212`; the latest November 4 sync used `70e0bf8a058a7df7a55f2f2e25eeb0784ab10530`; the earlier November 4 sync used `4df9b26d213230d456cfc9a86e10c4a21cb65545`; the November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
+The current comparison base is upstream commit `368d78c137e8d6b65eb035330146ab3c8edf8d55`. The preceding title-bar sync used `6af024ff4f9a325cfd51afe14f0a901e67d693a1`. The preceding favorites sync used `1a43b7f6baf3da9c61862a44346a8bafec8f2bc4`. The preceding ServerColumns sync used `bf516c96e82959e0c820e68a880cd6dc1770a867`. The image-viewer sync used `0028f82f182a0ff93459cea5a29426613e782490`. The preceding November 7 sync used `f8d684323692b13e1126db3ad461b7ca528e2032`. The first November 7 sync used `9fe1b591a336d079926c9cdac53cc733ef9cf212`; the latest November 4 sync used `70e0bf8a058a7df7a55f2f2e25eeb0784ab10530`; the earlier November 4 sync used `4df9b26d213230d456cfc9a86e10c4a21cb65545`; the November 3 sync used `ab3a8e958eff88a86c7b1a4b5db385d9b56a92fc`; the November 2 sync used `5c5f63ffe8b5d395b037d68126a49c5c4ecd3cf7`; the November 1 sync used `bc83a6d6dfe019c304e82d2aa77f4193e82b6034`; the October 29 sync used `2cda4b90248e93558fe41311ba33af3cfc1261e8`; the October 28 repair checkpoint used `819bd99b00cc7870b7a82905ba0a950ca4ee228e`. The clean branch was renamed from `master` to `upstream-master` locally and on the fork, and is the fork’s default branch. The explicit name avoids confusing a local branch with the remote-tracking ref `upstream/master`.
 
 The October 28 checkpoint completed the reported public-alias repairs on develop. Lookup results, native-export evidence and conditional UI validation remain separate below; the upstream comparison branch stays clean.
+
+## Upstream sync — November 11
+
+Four upstream commits through `368d78c137` remove unused BDFDB class mappings and update BetterFriendList to **1.7.3**, removing its old search-bar spacing override. The plugin follows upstream exactly. BDFDB remains at the official **4.5.9**, with the fork's current update and resource routing, original author and separate maintainer retained.
+
+The approved integration adopts **75** of upstream's 77 removed aliases, reducing the fork's public alias count from **1,615 to 1,540**. It retains `recentmentionschannelnamespan` and `recentmentionsguildname`: upstream's EditChannels and EditServers still use them to find recent-mentions channel and guild names. The unchanged consumers can continue using the fork's repaired mappings. The four surviving DM invite aliases follow upstream's `DmAddPopout` descriptor migration. `CustomStatusIcon` and its lazy suffix remain because the separate DM activity aliases still use them.
+
+Retired repairs include the removed SearchBar and GuildDiscovery mappings, obsolete modal-backdrop, profile, live-tag, upload, DM-invite and welcome-button markers, their exclusive owner hooks and 12 now-unused fork-owned class groups. The removed backdrop dependency no longer blocks compatibility startup. The modal-hidden, editor font-size, locked welcome, expanded-topic and other still-used repairs remain; a fresh controller has **seven active owner contracts**. Earlier sections describe their historical checkpoints, not the current alias inventory.
+
+Focused offline checks compare the complete data delta and **12,288** production getter results for retained aliases, exercise production discovery and getters for DM activity, DM invite and recent mentions, and execute the production startup and remaining modal/editor/topic/welcome handlers in fixtures. They establish source behavior without a new Discord runtime or UI pass. An existing renderer bridge can retain its previous contracts, host-marker state and a functional backdrop projection until Discord is restarted; the seven-contract count applies to a fresh controller. File replacement alone does not prove that the older machinery has retired.
 
 ## Upstream sync — November 7 (title-bar cutoff)
 

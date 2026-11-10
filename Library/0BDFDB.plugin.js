@@ -27,7 +27,6 @@ module.exports = (_ => {
 	const fs = require("fs"), path = require("path");
 	// Temporary frontend652418 compatibility; public class aliases are preserved.
 	const BDFDBCompatTokens = {
-	"backdropwithlayer": "bdfdb-compat-backdrop-with-layer",
 	"cardeditable": "bdfdb-compat-cardeditable",
 	"textareaaccessorybar": "accessoryBar__74017",
 	"textareafontsize12padding": "bdfdb-compat-textareafontsize12padding",
@@ -37,36 +36,14 @@ module.exports = (_ => {
 	"textareafontsize18padding": "bdfdb-compat-textareafontsize18padding",
 	"textareafontsize20padding": "bdfdb-compat-textareafontsize20padding",
 	"textareafontsize24padding": "bdfdb-compat-textareafontsize24padding",
-	"userpopoutcustomstatussoloemoji": "bdfdb-compat-status-solo-emoji",
-	"dmaddpopout": "bdfdb-compat-dmaddpopout",
-	"filedownloadbutton": "bdfdb-compat-filedownloadbutton",
 	"goliveclickablegamewrapper": "clickableGameWrapper__5dec7",
-	"guildheaderbutton": "bdfdb-compat-guildheaderbutton",
-	"guildheaderbuttonopen": "bdfdb-compat-guildheaderbuttonopen",
 	"modalminitext": "bdfdb-compat-modalminitext",
-	"livetagsmall": "bdfdb-compat-livetagsmall",
 	"menuimagecontainer": "bdfdb-compat-menuimagecontainer",
 	"messagemarkuptimestamptooltip": "timestampTooltip__75297",
 	"messageswelcomelocked": "bdfdb-compat-messageswelcomelocked",
-	"messageswelcomebutton": "bdfdb-compat-messageswelcomebutton",
-	"messageswelcomebuttonicon": "bdfdb-compat-messageswelcomebuttonicon",
 	"modallayerhidden": "bdfdb-compat-modallayerhidden",
-	"modallayerbackdropwithlayer": "bdfdb-compat-backdrop-with-layer",
-	"quickmessage": "bdfdb-compat-quickmessage",
-	"recentmentionsdmicon": "bdfdb-compat-recentmentionsdmicon",
 	"unreadbaricon": "bdfdb-compat-unreadbaricon",
-	"userbannerpopout": "bdfdb-compat-banner-popout",
-	"userbannerpopoutpremium": "bdfdb-compat-banner-popout-premium",
-	"userbannermodal": "bdfdb-compat-banner-modal",
-	"userbannermodalpremium": "bdfdb-compat-banner-modal-premium",
-	"userpopoutavatarhint": "bdfdb-compat-avatar-hint",
-	"userpopoutavatarhintinner": "bdfdb-compat-avatar-hint-inner",
-	"userpopoutavatarpositionnormal": "bdfdb-compat-avatar-position-normal",
-	"userpopoutavatarwrappernonuserbot": "bdfdb-compat-avatar-wrapper-nonuser-bot",
-	"userpopoutavatarwrappernormal": "bdfdb-compat-avatar-wrapper-normal",
-	"userpopoutsectionlast": "bdfdb-compat-profile-last-section",
-	"voicedetailspingforeground": "bdfdb-compat-voicedetailspingforeground",
-	"uploadmodal": "bdfdb-compat-uploadmodal"
+	"voicedetailspingforeground": "bdfdb-compat-voicedetailspingforeground"
 };
 	const BDFDBCompatController = (() => {
 		// PRIVATE stable controller, owned by the renderer bridge rather than a BDFDB
@@ -754,72 +731,6 @@ module.exports = (_ => {
 		return {createHostMarkers};
 	})();
 
-	const BDFDBCompatBackdrop = (() => {
-		// PRIVATE: current Scrim462824 -> Layer750506/80556 -> portal container365912.
-		// The committed parent establishes the old non-null LayerComponent predicate.
-		// No component type replacement, DOM polling or global element search.
-		function createBackdropRule({React,classFor,isActive}) {
-		    const refs=new WeakMap(),nullRefs=new Map(),ownedRefs=new WeakMap(),records=new Map();
-		    const token=classFor("backdropwithlayer");
-		    let source=null,assignments=0;
-		    const includes=(value,part)=>typeof value==="string" && value.split(/\s+/).includes(part);
-		    const eligible=node=>!!source && includes(node.className,source.scrimClass) && node.parentElement?.classList.contains(source.layerClass);
-		    function reconcile(node) {
-		        node.classList.remove(token);
-		        if(isActive() && eligible(node)) {
-		            node.classList.add(token);assignments++;
-		        }
-		    }
-		    function forRef(reference,stamp) {
-		        const hasNativeRef=reference && (typeof reference==="function" || typeof reference==="object");
-		        if(hasNativeRef && refs.has(reference))return refs.get(reference);
-		        if(!hasNativeRef && nullRefs.has(stamp))return nullRefs.get(stamp);
-		        const entry={reference,nodes:new Set(),callback:null};
-		        const callback=node=>{
-		            if(!node)return;
-		            let nativeCleanup;
-		            if(typeof reference==="function")nativeCleanup=reference(node);
-		            else if(reference)reference.current=node;
-		            records.set(node,entry);entry.nodes.add(node);reconcile(node);
-		            let done=false;
-		            return()=>{
-		                if(done)return;done=true;
-		                try {
-		                    if(typeof nativeCleanup==="function")nativeCleanup();
-		                    else if(typeof reference==="function")reference(null);
-		                    else if(reference)reference.current=null;
-		                }
-		                finally {node.classList.remove(token);records.delete(node);entry.nodes.delete(node);}
-		            };
-		        };
-		        entry.callback=callback;ownedRefs.set(callback,entry);
-		        if(hasNativeRef)refs.set(reference,entry);else nullRefs.set(stamp,entry);
-		        return entry;
-		    }
-		    return {
-		        bind(value) {source=value;},
-		        project(element) {
-		            if(!source || !React.isValidElement(element) || typeof element.type!=="string" ||
-		                element.props.role!=="none" || !includes(element.props.className,source.scrimClass))return element;
-		            const entry=ownedRefs.get(element.props.ref) || forRef(element.props.ref,element.props.className);
-		            const classes=element.props.className.split(/\s+/).filter(value=>value!==token);
-		            // A native ref identifies the already committed Scrim. Carry its
-		            // established parent predicate through class updates without
-		            // detaching/re-attaching the native animation observer's ref.
-		            if(isActive() && entry.nodes.size && [...entry.nodes].every(eligible))classes.push(token);
-		            const className=classes.join(" ");
-		            return className===element.props.className && entry.callback===element.props.ref?element:
-		                React.cloneElement(element,{className,ref:entry.callback});
-		        },
-		        start() {for(const node of records.keys())reconcile(node);},
-		        stop() {for(const node of records.keys())node.classList.remove(token);},
-		        getStatus:()=>({source:source?{...source}:null,trackedNodes:records.size,assignments,
-		            currentMatches:[...records.keys()].filter(node=>node.classList.contains(token)).length})
-		    };
-		}
-		return {createBackdropRule};
-	})();
-
 	const BDFDBCompatUI = (() => {
 		// PRIVATE candidate, not installed. Exact owner contracts are verified against
 		// captured source separately. No scans, imports or app operations in callbacks.
@@ -870,17 +781,6 @@ module.exports = (_ => {
 		            element(event) { return mark(event.returnValue,event.isActive() && event.props?.editable?["cardeditable"]:[],["cardeditable"]); },
 		            after(event) { return mark(event.returnValue, event.props?.editable ? ["cardeditable"] : [], ["cardeditable"]); }
 		        },
-		        guildHeader: {
-		            connect(tools) { controllerTools = tools; },
-		            before(event) {
-		                const instance = event.instance;
-		                controllerTools.patchMethod(instance, "renderGuildHeaderDropdownButton", {after(e) {
-		                    const enabled = ["guildheaderbutton"];
-		                    if (e.methodArguments[0]) enabled.push("guildheaderbuttonopen");
-		                    return mark(e.returnValue, enabled, ["guildheaderbutton", "guildheaderbuttonopen"]);
-		                }});
-		            }
-		        },
 		        qualityIcon: {
 		            element(event) {
 		                const colorClass=merge(event.props.colorClass,event.isActive()?["voicedetailspingforeground"]:[],["voicedetailspingforeground"]);
@@ -908,21 +808,6 @@ module.exports = (_ => {
 		                }});
 		            }
 		        },
-		        modalStack: {
-		            connect(tools) { controllerTools = tools; },
-		            after(event) {
-		                return mapTree(event.returnValue,
-		                    element => controllerTools.isOwnerType(element.type, "modalScrim"),
-		                    element => React.cloneElement(element, {__bdfdbWithLayer: true}));
-		            }
-		        },
-		        modalScrim: {
-		            after(event) {
-		                if (!event.props?.__bdfdbWithLayer) return event.returnValue;
-		                return mapTree(event.returnValue, element => element.props.role === "none", element =>
-		                    mark(element, ["backdropwithlayer", "modallayerbackdropwithlayer"]));
-		            }
-		        },
 		        modalLayer: {
 		            after(event) {
 		                if (context.modalHiddenState === undefined) throw Error("Native modal transition enum is unverified");
@@ -940,23 +825,11 @@ module.exports = (_ => {
 		                const explicit = event.props?.fontSize;
 		                const font = explicit == null ? context.fontStore?.fontSize : explicit;
 		                const fontAlias = fontAliases.find(a => a === "textareafontsize" + font + "padding");
-		                const quick = event.props?.type?.analyticsName === "user_profile";
-		                const owned = [...fontAliases, "quickmessage"];
-		                const enabled = [...(fontAlias ? [fontAlias] : []), ...(quick ? ["quickmessage"] : [])];
+		                const owned = fontAliases;
+		                const enabled = fontAlias ? [fontAlias] : [];
 		                return mapTree(event.returnValue,
 		                    element => Object.prototype.hasOwnProperty.call(element.props, "textAreaPaddingClassName") && element.props.channel === event.props.channel,
 		                    element => React.cloneElement(element, {textAreaPaddingClassName: merge(element.props.textAreaPaddingClassName, enabled, owned)}));
-		            }
-		        },
-		        liveTag: {
-		            element(event) {
-		                const small=event.isActive() && event.props.shape!=null && event.props.shape!==context.roundBadgeShape && event.props.size==="small";
-		                return mark(event.returnValue,small?["livetagsmall"]:[],["livetagsmall"]);
-		            },
-		            after(event) {
-		                const props = event.props || {};
-		                const small = props.shape != null && props.shape !== context.roundBadgeShape && props.size === "small";
-		                return mark(event.returnValue, small ? ["livetagsmall"] : [], ["livetagsmall"]);
 		            }
 		        },
 		        expandedTopic: {
@@ -967,296 +840,28 @@ module.exports = (_ => {
 		                    element => mark(element, ["modalminitext"]));
 		            }
 		        },
-		        plaintextTools: {
-		            after(event) {
-		                const props = event.props;
-		                return mapTree(event.returnValue,
-		                    element => element.props.href === props.url && element.props.download === props.fileName,
-		                    element => React.cloneElement(element, {children: mark(element.props.children, ["filedownloadbutton"])}));
-		            }
-		        }
 		    };
 		    function fontChanged() { controllerTools.refreshOwner("channelEditor"); }
 		}
 
 		const CONTRACTS = [
 		    {name:"card", sourceOwner:"993077", strings:["outline:","editable:",".PRIMARY","className:","ref:"], maxLength:500, adapter:"props"},
-		    {name:"guildHeader", sourceOwner:"799871", kind:"class", strings:["renderGuildHeaderDropdownButton","guildHeaderDropdownButtonRef","renderGuildHeaderUpsellPopout","renderGuildHeaderNotices"]},
 		    {name:"qualityIcon", sourceOwner:"999751", strings:["quality:","largePing:","className:",",..."], maxLength:500, adapter:"props"},
 		    {name:"markupTooltip", sourceOwner:"255434", strings:["targetElementRef:","targetElement:","renderLayer:","role:\"tooltip\""], adapter:"function"},
-		    {name:"modalStack", sourceOwner:"638495", strings:["stackingBehavior","isTopModal:","backdropStyle","LayerComponent:"], adapter:"function"},
-		    {name:"modalScrim", sourceOwner:"462824", strings:["animationVariant:","disablePointerEvents:","\"scrim\"","\"animate-always\""], adapter:"function"},
 		    {name:"modalLayer", sourceOwner:"638495", kind:"class", strings:["componentWillAppear","componentWillEnter","isTopModal:",".HIDDEN","LayerComponent:"]},
 		    {name:"channelEditor", sourceOwner:"392553", kind:"class", strings:["_focusBlurQueue","_cachedEditorWindow","onMaybeShowAutocomplete","showValueWhenDisabled"]},
-		    {name:"liveTag", sourceOwner:"402216", strings:["count:","look:","shape:",".ROUND","\"GRAY\""], adapter:"props"},
 		    {name:"expandedTopic", sourceOwner:"181094", strings:["parseTopic","selectable:!0","linkedLobby","text-md/normal"], adapter:"function"},
-		    {name:"plaintextTools", sourceOwner:"44788", strings:["wordWrap:","setWordWrap:","renderMarkdown:","download:","fileName:"], adapter:"function"}
 		];
 		return {createTools, createHandlers, CONTRACTS};
-	})();
-
-	const BDFDBCompatProfile = (() => {
-		// PRIVATE candidate. No discovery, hook installation, DOM writes or live calls.
-		// Parent must supply its reviewed controller and owner-refresh/cleanup path.
-		const SOLO = "userpopoutcustomstatussoloemoji";
-		const NATIVE_EMOJI = "statusEmoji_ab8609";
-		const NATIVE_TEXT = "statusText_ab8609";
-		const HINT = "userpopoutavatarhint";
-		const HINT_INNER = "userpopoutavatarhintinner";
-		const HINT_KEY = "bdfdb-compat-avatar-profile-hint";
-		const BANNER_THEME = "__BDFDBCompatBannerThemeType";
-		const BANNER_ALIASES = ["userbannerpopout", "userbannerpopoutpremium", "userbannermodal", "userbannermodalpremium"];
-		const AVATAR_STATES = ["userpopoutavatarwrappernormal", "userpopoutavatarwrappernonuserbot", "userpopoutavatarpositionnormal"];
-		const CLASS_TOKENS = Object.freeze({
-		    [SOLO]: "bdfdb-compat-status-solo-emoji",
-		    [HINT]: "bdfdb-compat-avatar-hint",
-		    [HINT_INNER]: "bdfdb-compat-avatar-hint-inner",
-		    userbannerpopout: "bdfdb-compat-banner-popout",
-		    userbannerpopoutpremium: "bdfdb-compat-banner-popout-premium",
-		    userbannermodal: "bdfdb-compat-banner-modal",
-		    userbannermodalpremium: "bdfdb-compat-banner-modal-premium",
-		    userpopoutavatarwrappernormal: "bdfdb-compat-avatar-wrapper-normal",
-		    userpopoutavatarwrappernonuserbot: "bdfdb-compat-avatar-wrapper-nonuser-bot",
-		    userpopoutavatarpositionnormal: "bdfdb-compat-avatar-position-normal",
-		    userpopoutsectionlast: "bdfdb-compat-profile-last-section"
-		});
-
-		function createHandlers(context) {
-		    const {React, mark, mapTree, isActive} = context;
-		    if (!React || typeof mark !== "function" || typeof mapTree !== "function" || typeof isActive !== "function") {
-		        throw new TypeError("Profile handlers require React, mark, mapTree and an active-generation check");
-		    }
-		    const hasClass = (element, token) => React.isValidElement(element) &&
-		        typeof element.props.className === "string" && element.props.className.split(/\s+/).includes(token);
-		    const asChildren = element => Array.isArray(element.props.children) ? element.props.children : [element.props.children];
-		    const hintOriginalChildren = new WeakMap();
-		    const readProfileTheme = context.readProfileTheme;
-		    const avatarModes = new Set(context.legacyAvatarModes || ["POPOUT"]);
-		    if ([...avatarModes].some(mode => mode !== "POPOUT" && mode !== "SIDEBAR")) {
-		        throw new TypeError("Legacy avatar mode translation must be explicitly reviewed");
-		    }
-		    const hasEffect = profile => profile?.profileEffect != null;
-		    const classNames = typeof context.classFor === "function" ? (original, enabled, owned) => {
-		        const remove = new Set(owned.flatMap(alias => String(context.classFor(alias) || "").split(/\s+/)).filter(Boolean));
-		        const next = String(original || "").split(/\s+/).filter(token => token && !remove.has(token));
-		        for (const alias of enabled) for (const token of String(context.classFor(alias) || "").split(/\s+/)) {
-		            if (token && !next.includes(token)) next.push(token);
-		        }
-		        return next.join(" ");
-		    } : null;
-
-		    const handlers = {
-		        profileStatus: {
-		            // Native 394816's private status renderer is normally created with JSX
-		            // by its editable/non-editable profile-status branches. These keys
-		            // belong to that renderer, not to generic Emoji or activity status.
-		            matchStrings: ["statusLabel:", "referenceClassName:", "renderToolbar:", "onShowToolbar:", "placeholderText:", "hasEntered:"],
-		            aliases: [SOLO],
-		            after(event) {
-		                const enabled = isActive();
-		                return mapTree(event.returnValue,
-		                    element => asChildren(element).some(child => hasClass(child, NATIVE_EMOJI)),
-		                    element => {
-		                        const original = element.props.children;
-		                        const children = asChildren(element);
-		                        let changed = false;
-		                        const next = children.map((child, index) => {
-		                            if (!hasClass(child, NATIVE_EMOJI)) return child;
-		                            // Exact native CSS predicate: no following status-text
-		                            // sibling. Do not use text truthiness, Nitro, global
-		                            // emoji sizing or presence of a preceding label.
-		                            const hasFollowingText = children.slice(index + 1).some(sibling => hasClass(sibling, NATIVE_TEXT));
-		                            const replacement = mark(child, enabled && !hasFollowingText ? [SOLO] : [], [SOLO]);
-		                            changed ||= replacement !== child;
-		                            return replacement;
-		                        });
-		                        if (!changed) return element;
-		                        return React.cloneElement(element, {children: Array.isArray(original) ? next : next[0]});
-		                    });
-		            }
-		        }
-		    };
-
-		    if (classNames) {
-		        handlers.profileSection = {
-		            matchStrings: ["headingClassName:", "headingVariant:", "headingColor:", "headingIcon:", "hideHeading:", "introText:", "scrollTargetId:"],
-		            aliases: ["userpopoutsectionlast"],
-		            element(event) {return mark(event.returnValue,event.isActive() && event.props.lastSection===true?["userpopoutsectionlast"]:[],["userpopoutsectionlast"]);},
-		            after(event) {
-		                const root = event.returnValue;
-		                if (!React.isValidElement(root)) return root;
-		                const props = event.methodArguments[0] || {};
-		                return mark(root, isActive() && props.lastSection === true ? ["userpopoutsectionlast"] : [], ["userpopoutsectionlast"]);
-		            }
-		        };
-		    }
-
-		    // The native Tier2 utility must be resolved before these handlers/adapters
-		    // are created. Numeric ordering is invalid: native Basic/TIER_0 is value3.
-		    if (classNames && typeof context.isPremiumTier2 === "function") {
-		        handlers.profileBannerType = {
-		            matchStrings: ["themeType:", "canUsePremiumProfileCustomization:", "specOverrides:", "themePadding:"],
-		            aliases: [],
-		            element(event) {
-		                return React.cloneElement(event.returnValue,{[BANNER_THEME]:event.props.themeType});
-		            },
-		            after(event) {
-		                const root = event.returnValue;
-		                if (!React.isValidElement(root) || !isActive()) return root;
-		                return React.cloneElement(root, {[BANNER_THEME]: event.methodArguments[0]?.themeType});
-		            }
-		        };
-		        handlers.profileBannerFill = {
-		            matchStrings: ["pendingBanner:", "avatarOffsetX:", "avatarOffsetY:", "bannerWidth:", "bannerHeight:", "themePadding:", "fillClassName:"],
-		            aliases: BANNER_ALIASES,
-		            after(event) {
-		                const root = event.returnValue;
-		                if (!React.isValidElement(root)) return root;
-		                const props = event.methodArguments[0] || {};
-		                const type = props[BANNER_THEME];
-		                const premiumBanner = root.props.bannerSrc != null || hasEffect(props.displayProfile);
-		                const enabled = [];
-		                if (isActive()) {
-		                    if (type === "POPOUT") {
-		                        if (premiumBanner) enabled.push("userbannerpopoutpremium");
-		                        else if (!context.isPremiumTier2(props.displayProfile)) enabled.push("userbannerpopout");
-		                        // Tier2 without banner/effect was a third, distinct
-		                        // native class. Neither legacy public alias applies.
-		                    }
-		                    else if (type === "MODAL" || type === "MODAL_V2") {
-		                        enabled.push(premiumBanner ? "userbannermodalpremium" : "userbannermodal");
-		                    }
-		                }
-		                const value = classNames(root.props.fillClassName, enabled, BANNER_ALIASES);
-		                return value === root.props.fillClassName ? root : React.cloneElement(root, {fillClassName: value});
-		            }
-		        };
-		    }
-
-		    // Enable this owner only after the controller has resolved the already-
-		    // cached native context reader. Calling a discovery routine or changing
-		    // the reader/hook sequence during a render is explicitly unsupported.
-		    if (typeof context.readProfileTheme === "function" && classNames && typeof context.isPremiumTier2 === "function") {
-		        handlers.profileAvatar = {
-		            matchStrings: ["onOpenProfile:", "onOpenAvatar:", "imageAnimatingClassName:", "PRESS_VIEW_PROFILE", "hasAvatarForGuild"],
-		            aliases: [HINT, HINT_INNER, ...AVATAR_STATES],
-		            hooks() {
-		                return {profileTheme: readProfileTheme()};
-		            },
-		            hookSchema: "native-profile-context-v1",
-		            after(event) {
-		                const root = event.returnValue;
-		                if (!React.isValidElement(root)) return root;
-		                const props = event.methodArguments[0] || {};
-		                const themeType = event.hookContext?.profileTheme?.themeType;
-		                const user = props.user;
-		                const guildId = props.displayProfile?.guildId ?? props.guildId;
-		                const isClyde = typeof user?.isClyde === "function" && user.isClyde();
-		                const nonUserBot = typeof user?.isNonUserBot === "function" && user.isNonUserBot() && !isClyde;
-		                const enabled = [];
-		                // POPOUT is proved directly. Old PANEL -> current SIDEBAR is
-		                // an optional fixed translation for parent review, never an
-		                // inference from avatar dimensions or a modal-wide marker.
-		                if (isActive() && avatarModes.has(themeType)) {
-		                    enabled.push(nonUserBot ? "userpopoutavatarwrappernonuserbot" : "userpopoutavatarwrappernormal");
-		                    if (themeType === "POPOUT" && props.displayProfile?.banner == null && !hasEffect(props.displayProfile) &&
-		                        !context.isPremiumTier2(props.displayProfile)) enabled.push("userpopoutavatarpositionnormal");
-		                }
-		                const markedRoot = mark(root, enabled, AVATAR_STATES);
-		                const opensAvatar = props.onOpenAvatar != null && user != null &&
-		                    (user.avatar != null || typeof user.hasAvatarForGuild === "function" && user.hasAvatarForGuild(guildId));
-		                const nativeAvatar = Array.isArray(root.props.children) ? root.props.children[0] : root.props.children;
-		                const avatarProps = React.isValidElement(nativeAvatar) ? nativeAvatar.props : null;
-		                const decorated = avatarProps?.avatarDecoration != null;
-		                const supportedMask = avatarProps != null && !avatarProps.isMobile && !avatarProps.isVR && !avatarProps.isTyping;
-		                const hintMask = avatarProps?.status == null || avatarProps.status === "unknown" ?
-		                    "svg-mask-avatar-default" : "svg-mask-avatar-status-round-80";
-		                const show = isActive() && themeType === "POPOUT" && props.avatarSize === "SIZE_80" &&
-		                    typeof props.onOpenProfile === "function" && !opensAvatar && !isClyde && !nonUserBot && !decorated && supportedMask && typeof root.props["aria-label"] === "string";
-		                const previous = hintOriginalChildren.get(root);
-		                const hasOwnHint = Array.isArray(root.props.children) && root.props.children.some(child =>
-		                    React.isValidElement(child) && child.key === HINT_KEY);
-		                const originalChildren = previous !== undefined ? previous : hasOwnHint ?
-		                    root.props.children.filter(child => !(React.isValidElement(child) && child.key === HINT_KEY)) : root.props.children;
-		                if (!show) {
-		                    return previous === undefined && !hasOwnHint ? markedRoot : React.cloneElement(markedRoot, {children: originalChildren});
-		                }
-		                // The first-party preview places a non-interactive SVG hint
-		                // immediately after the avatar. Preserve that shape and mask;
-		                // the current root already owns all click/focus behavior.
-		                const hint = React.createElement("svg", {
-		                    key: HINT_KEY,
-		                    className: context.classFor(HINT),
-		                    width: 80,
-		                    height: 80,
-		                    viewBox: "0 0 80 80",
-		                    "aria-hidden": true,
-		                    focusable: false,
-		                    children: React.createElement("foreignObject", {
-		                        x: 0, y: 0, width: 80, height: 80,
-		                        mask: "url(#" + hintMask + ")",
-		                        children: React.createElement("div", {
-		                            className: context.classFor(HINT_INNER),
-		                            children: root.props["aria-label"]
-		                        })
-		                    })
-		                });
-		                const children = Array.isArray(originalChildren) ? [...originalChildren, hint] : [originalChildren, hint];
-		                const result = React.cloneElement(markedRoot, {children});
-		                hintOriginalChildren.set(result, originalChildren);
-		                return result;
-		            }
-		        };
-		    }
-		    return handlers;
-		}
-
-		return {createHandlers, CLASS_TOKENS, NATIVE_EMOJI, NATIVE_TEXT, HINT_KEY, BANNER_THEME};
 	})();
 
 	const BDFDBCompatExtra = (() => {
 		// PRIVATE candidate. The controller integration/lifecycle gate is still open.
 		function createHandlers(context) {
-		    const {React, mark, mapTree, classFor} = context;
+		    const {React, mark, classFor} = context;
 		    const valid = React.isValidElement;
-		    let tools;
 		    const hasClass = (element, token) => valid(element) && typeof element.props.className === "string" &&
 		        element.props.className.split(/\s+/).includes(token);
-		    const shared=context.shared || {};
-		    const welcomeRecords = shared.welcomeRecords ||= new Set(), dmNodes = new Set(), dmInstances = new WeakMap();
-		    function removeWelcome(record) {
-		        record.node?.classList.remove(classFor("messageswelcomebutton"));
-		        record.icon?.classList.remove(classFor("messageswelcomebuttonicon"));
-		        record.icon = null;
-		    }
-		    function reconcileWelcome(record) {
-		        if (!record.node || !record.event?.isActive()) { removeWelcome(record); return; }
-		        record.node.classList.add(classFor("messageswelcomebutton"));
-		        const icon = record.node.querySelector("svg");
-		        if (record.icon && record.icon !== icon) record.icon.classList.remove(classFor("messageswelcomebuttonicon"));
-		        record.icon = icon;
-		        icon?.classList.add(classFor("messageswelcomebuttonicon"));
-		    }
-		    function clearNativeRef(record) {
-		        if (typeof record.nativeCleanup === "function") record.nativeCleanup();
-		        else if (typeof record.nativeRef === "function") record.nativeRef(null);
-		        else if (record.nativeRef) record.nativeRef.current = null;
-		        record.nativeCleanup = null;
-		        record.nativeRef = null;
-		    }
-		    function setNativeRef(record, reference) {
-		        record.nativeRef = reference;
-		        if (typeof reference === "function") record.nativeCleanup = reference(record.node);
-		        else if (reference) reference.current = record.node;
-		    }
-		    function reconcileDm(instance, event) {
-		        const previous = dmInstances.get(instance);
-		        if (previous) { previous.classList.remove(classFor("dmaddpopout")); dmNodes.delete(previous); }
-		        if (!event.isActive()) return;
-		        const node = context.findDOMNode(instance);
-		        const target = node?.matches?.('[data-mana-component="modal"]') ? node : node?.querySelector?.('[data-mana-component="modal"]');
-		        if (target) { target.classList.add(classFor("dmaddpopout")); dmNodes.add(target); dmInstances.set(instance,target); }
-		    }
 		    return {
 		        welcomeGlyph: {
 		            after(event) {
@@ -1264,64 +869,6 @@ module.exports = (_ => {
 		                if (!valid(root) || !valid(root.props.children)) return root;
 		                const glyph = mark(root.props.children, event.props.locked ? ["messageswelcomelocked"] : [], ["messageswelcomelocked"]);
 		                return glyph === root.props.children ? root : React.cloneElement(root, {children:glyph});
-		            }
-		        },
-		        welcomeEdit: {
-		            hookSchema:"welcome-button-ref-v1",
-		            hooks() {
-		                const holder = React.useRef(null);
-		                if (!holder.current) {
-		                    const record = {node:null,icon:null,nativeRef:null,nextNativeRef:null,nativeCleanup:null,event:null};
-		                    record.ref = node => {
-		                        if (node === record.node) return;
-		                        removeWelcome(record);
-		                        if (record.node) clearNativeRef(record);
-		                        record.node = node;
-		                        if (node) { setNativeRef(record,record.nextNativeRef); reconcileWelcome(record); }
-		                    };
-		                    holder.current = record;
-		                }
-		                const record = holder.current;
-		                React.useLayoutEffect(() => {
-		                    welcomeRecords.add(record);
-		                    if (record.node && record.nativeRef !== record.nextNativeRef) {
-		                        clearNativeRef(record); setNativeRef(record,record.nextNativeRef);
-		                    }
-		                    reconcileWelcome(record);
-		                });
-		                React.useLayoutEffect(() => () => { removeWelcome(record); welcomeRecords.delete(record); }, []);
-		                return record;
-		            },
-		            after(event) {
-		                const record = event.hookContext;
-		                record.event = event;
-		                return mapTree(event.returnValue,
-		                    element => element.props.size === "sm" && element.props.variant === "secondary" &&
-		                        typeof element.props.icon === "function" && typeof element.props.onClick === "function",
-		                    element => {
-		                        record.nextNativeRef = element.props.buttonRef;
-		                        return React.cloneElement(element, {buttonRef:record.ref});
-		                    });
-		            },
-		            stop() { for (const record of welcomeRecords) removeWelcome(record); }
-		        },
-		        dmInvite: {
-		            connect(value) { tools = value; },
-		            before(event) {
-		                // Owner452015.ts already has mount/unmount. A reviewed controller
-		                // supplies the reversible missing-update method and commit flag.
-		                tools.attachInstanceCommit(event.instance, () => reconcileDm(event.instance,event));
-		            },
-		            unmount(instance) {
-		                const node=dmInstances.get(instance);
-		                node?.classList.remove(classFor("dmaddpopout"));
-		                dmNodes.delete(node);dmInstances.delete(instance);
-		            },
-		            stop() { for (const node of dmNodes) node.classList.remove(classFor("dmaddpopout")); dmNodes.clear(); }
-		        },
-		        recentPrivateAvatar: {
-		            after(event) {
-		                return mark(event.returnValue, event.props.channel?.isPrivate?.() ? ["recentmentionsdmicon"] : [], ["recentmentionsdmicon"]);
 		            }
 		        },
 		        menuAccessory: {
@@ -1350,114 +897,16 @@ module.exports = (_ => {
 
 		const CONTRACTS = [
 		    {name:"welcomeGlyph",sourceOwner:"314307",strings:["locked:","channelType:",".GUILD_STAGE_VOICE",".GUILD_APP"],adapter:"function"},
-		    {name:"welcomeEdit",sourceOwner:"425812",strings:["MANAGE_CHANNELS","PencilIcon","parseTopic","channelName:"],maxLength:1500,adapter:"function"},
-		    {name:"dmInvite",sourceOwner:"452015",kind:"class",strings:["handleInviteUsers","_promoteDMToGroupDM","renderModalInput","PRIVATE_CHANNEL_INVITE_MODAL_OPENED"]},
-		    {name:"recentPrivateAvatar",sourceOwner:"173842",strings:["channel:","isGroupDM()","getGuild","aria-hidden","SIZE_32"],maxLength:800,adapter:"function"},
 		    {name:"menuAccessory",sourceOwner:"980707",strings:["case\"image\":","imageAccessory"],adapter:"function"},
 		    {name:"unreadBar",sourceOwner:"173860",kind:"class",strings:["getAnimatedStyle","animateOut","reverse:","text:","hide:"]}
 		];
 		return {createHandlers,CONTRACTS};
 	})();
 
-	const BDFDBCompatUpload = (() => {
-		// PRIVATE source-reviewed SharedModal props adapter. Numeric owner IDs are
-		// evidence only: discovery uses the unique native SharedModal source contract.
-		const CONTRACT = Object.freeze({
-		    name: "uploadModal", kind: "function", adapter: "props", sourceOwner: "189213",
-		    strings: ["actionBarInputLayout:", "actionsFullWidth:null==", "scrollerRef:", "notice:"],
-		    maxLength: 1000
-		});
-		const SHARED_KEY = "remaining41UploadModalMarker";
-		const MARKER_KEY = "bdfdb-upload-modal-marker";
-		// The complete submit body is globally unique in all 6,283 captured assets.
-		// Anchoring both ends excludes functions which merely contain this callback.
-		const CONFIRM_SOURCE = /^function\s*[$\w]*\s*\(\s*\)\s*\{\s*[$\w]+\s*\(\s*\{\s*name\s*:\s*[$\w]+\s*,\s*description\s*:\s*[$\w]+\s*,\s*spoiler\s*:\s*[$\w]+\s*\}\s*\)\s*,\s*[$\w]+\s*\(\s*\)\s*;?\s*\}$/;
-
-		function isAttachmentDialog(props) {
-		    const actions = props?.actions;
-		    if (!Array.isArray(actions) || actions.length !== 2 || actions[0]?.variant !== "secondary" ||
-		        actions[1]?.variant !== "primary" || typeof props.onClose !== "function" ||
-		        actions[0].onClick !== props.onClose || typeof actions[1].onClick !== "function") return false;
-		    try { return CONFIRM_SOURCE.test(Function.prototype.toString.call(actions[1].onClick)); }
-		    catch (_) { return false; }
-		}
-
-		function createHandlers(context) {
-		    const {React, shared, document, readModalContext, classFor, isActive} = context;
-		    if (!shared || typeof readModalContext !== "function" || typeof classFor !== "function" ||
-		        typeof isActive !== "function" || typeof document?.getElementById !== "function") {
-		        throw Error("UploadModal requires shared, document, resolved native readModalContext, classFor and isActive");
-		    }
-		    let holder = shared[SHARED_KEY];
-		    if (!holder) {
-		        // The stable component closes over native React and this mutable holder,
-		        // never a prior BDFDB context/generation. Its hook sequence is fixed.
-		        holder = {React, readModalContext, binding: null, trackUpdate: null, records: new Set()};
-		        holder.Marker = function BDFDBUploadModalMarker() {
-		            const modal = holder.readModalContext();
-		            const [, dispatch] = React.useReducer(value => value + 1, 0);
-		            React.useLayoutEffect(() => holder.trackUpdate(dispatch), [holder.trackUpdate]);
-		            React.useLayoutEffect(() => {
-		                const binding = holder.binding;
-		                if (!binding?.isActive() || typeof modal?.id !== "string") return;
-		                const node = binding.document.getElementById(modal.id)?.querySelector('[data-mana-component="modal"]');
-		                if (!node?.classList) return;
-		                const token = binding.classFor("uploadmodal");
-		                // This alias is one class token, not an arbitrary selector.
-		                if (typeof token !== "string" || !token || /\s/.test(token)) return;
-		                node.classList.add(token);
-		                const record = {node, token};
-		                holder.records.add(record);
-		                return () => { node.classList.remove(token); holder.records.delete(record); };
-		            });
-		            return null;
-		        };
-		        shared[SHARED_KEY] = holder;
-		    }
-		    if (holder.React !== React) throw Error("UploadModal marker requires the same native React instance across rebinds");
-		    const binding = {document, readModalContext, classFor, isActive};
-		    let connected = false;
-		    function activate() {
-		        if (!connected) return;
-		        holder.readModalContext = binding.readModalContext;
-		        holder.binding = binding;
-		    }
-		    return {uploadModal: {
-		        aliases: ["uploadmodal"],
-		        connect(tools) {
-		            if (typeof tools?.trackUpdate !== "function") throw Error("UploadModal requires controller tools.trackUpdate(dispatch) returning cleanup");
-		            holder.trackUpdate = tools.trackUpdate;
-		            connected = true;
-		            activate();
-		        },
-		        start: activate,
-		        stop() {
-		            if (holder.binding !== binding) return;
-		            holder.binding = null;
-		            // Stop is synchronous; reducer regeneration also releases effects.
-		            for (const record of holder.records) record.node.classList.remove(record.token);
-		        },
-		        element(event) {
-		            const element = event.returnValue;
-		            if (!connected || holder.binding !== binding || !isActive() || !React.isValidElement(element) ||
-		                !isAttachmentDialog(event.props)) return element;
-		            // Preserve another plugin's slot and never turn it into a fragment:
-		            // doing so can remount that plugin's existing stateful component.
-		            if (element.props.contentOutsideContainer != null) return element;
-		            return React.cloneElement(element, {
-		                contentOutsideContainer: React.createElement(holder.Marker, {key: MARKER_KEY})
-		            });
-		        }
-		    }};
-		}
-
-		return {createHandlers, CONTRACT, CONFIRM_SOURCE, isAttachmentDialog, SHARED_KEY, MARKER_KEY};
-	})();
-
 	const BDFDBCompatBindings = (() => {
 		// PRIVATE generation-local dependency preparation. Searches only initialized
 		// exports through BDFDB's existing finder. Never loads/executes a provider.
-		function createBindings({BDFDB,React,controller,document,ui,profile,extra,upload,classTokens}) {
+		function createBindings({BDFDB,React,controller,document,ui,extra,classTokens}) {
 		    const handlers=Object.create(null), native=Object.create(null), dependencies=Object.create(null);
 		    const shared=controller.shared;
 		    const classFor=alias=>{if(!classTokens[alias])throw Error("Unknown compatibility alias: "+alias);return classTokens[alias];};
@@ -1473,66 +922,15 @@ module.exports = (_ => {
 		        if(matches.length===1) native[name]=matches[0];
 		        return native[name] || null;
 		    }
-		    function text(fn) {
-		        const seen=new Set();
-		        while(typeof fn==="function" && !seen.has(fn)) {
-		            seen.add(fn);const next=fn.__originalFunction || fn._originalFunction;
-		            if(typeof next!=="function")break;fn=next;
-		        }
-		        return typeof fn==="function"?String(fn):"";
-		    }
 		    function modalTransitionEnum(value) {
 		        const names=["ENTERING","ENTERED","EXITING","EXITED","HIDDEN"];
 		        return value && typeof value==="object" && Object.keys(value).length===10 &&
 		            names.every((name,index)=>value[name]===index && value[index]===name);
 		    }
-		    function profileDependencies(avatar) {
-		        const premiumShape=m=>m && typeof m.isPremiumAtLeast==="function" && typeof m.isPremium==="function" && typeof m.isPremiumExactly==="function";
-		        // Captured module474090 exports its utility object together with its
-		        // three methods and the separate at-most helper. Public reexports of
-		        // the object alone do not identify the native owner namespace.
-		        const premiumNamespace=unique("nativePremiumUtils",m=>{
-		            if(!m || typeof m!=="object" || Object.keys(m).length!==5)return false;
-		            const values=Object.values(m),objects=values.filter(premiumShape);
-		            return objects.length===1 && values.filter(v=>typeof v==="function").length===4 &&
-		                [objects[0].isPremiumAtLeast,objects[0].isPremium,objects[0].isPremiumExactly].every(fn=>values.includes(fn));
-		        });
-		        const premium=premiumNamespace && Object.values(premiumNamespace).find(premiumShape);
-		        const types=unique("nativePremiumTypes",m=>m && m.TIER_1===1 && m.TIER_2===2 && m.TIER_0===3 && m[3]==="TIER_0");
-		        if(!premium || !types)return null;
-		        let readProfileTheme;
-		        if(avatar) {
-		            const namespace=unique("nativeProfileContext",m=>{
-		                if(!m || typeof m!=="object")return false;
-		                const values=Object.values(m);
-		                return values.some(fn=>typeof fn==="function" && ["themeType:","primaryColor:","secondaryColor:","userId:","useMemo","Provider"].every(s=>text(fn).includes(s))) &&
-		                    values.some(fn=>typeof fn==="function" && text(fn).includes("useContext("));
-		            });
-		            if(!namespace)return null;
-		            const readers=Object.values(namespace).filter(fn=>typeof fn==="function" && text(fn).includes("useContext("));
-		            if(readers.length!==1)return null;
-		            readProfileTheme=readers[0];
-		        }
-		        return {isPremiumTier2:p=>premium.isPremiumAtLeast(p?.premiumType,types.TIER_2),readProfileTheme};
-		    }
 		    function prepareOwner(name) {
 		        if(handlers[name])return handlers[name];
 		        let value;
-		        if(["profileStatus","profileSection","profileBannerType","profileBannerFill","profileAvatar"].includes(name)) {
-		            const needsPremium=["profileBannerType","profileBannerFill","profileAvatar"].includes(name);
-		            const deps=needsPremium?profileDependencies(name==="profileAvatar"):{};
-		            if(deps==null)return null;
-		            value=profile.createHandlers({...base,...deps})[name];
-		        }
-		        else if(name==="uploadModal") {
-		            const readModalContext=unique("nativeModalContextReader",fn=>typeof fn==="function" &&
-		                text(fn).includes("useModalContext must be used within a ModalContext.Provider") && text(fn).includes("useContext("));
-		            if(!readModalContext)return null;
-		            value=upload.createHandlers({...base,readModalContext}).uploadModal;
-		        }
-		        else if(["welcomeGlyph","welcomeEdit","dmInvite","recentPrivateAvatar"].includes(name)) {
-		            value=extra.createHandlers({...base,findDOMNode:instance=>BDFDB.ReactUtils.findDOMNode(instance)})[name];
-		        }
+		        if(name==="welcomeGlyph") value=extra.createHandlers(base)[name];
 		        else {
 		            const ctx={...base};
 		            if(name==="channelEditor") {
@@ -1553,11 +951,6 @@ module.exports = (_ => {
 		                });
 		                if(!namespace)return null;ctx.modalHiddenState=Object.values(namespace).find(modalTransitionEnum).HIDDEN;
 		            }
-		            if(name==="liveTag") {
-		                const shape=unique("nativeLiveTagShapeClasses",m=>m && typeof m==="object" && Object.values(m).length===6 &&
-		                    ["pill_","badge_","round_","roundLeft_","roundRight_"].every(prefix=>Object.values(m).some(v=>typeof v==="string" && v.startsWith(prefix))));
-		                if(!shape)return null;ctx.roundBadgeShape=Object.values(shape).find(v=>v.startsWith("round_"));
-		            }
 		            if(name==="markupTooltip")ctx.markupTimestampClass=BDFDB.disCN.messagemarkuptimestamp;
 		            if(name==="expandedTopic")ctx.markupClass=BDFDB.disCN.messagemarkup;
 		            value=ui.createHandlers(ctx)[name];
@@ -1568,20 +961,8 @@ module.exports = (_ => {
 		    return {handlers,prepareOwner,getDiagnostics:()=>({dependencies:JSON.parse(JSON.stringify(dependencies)),preparedOwners:Object.keys(handlers)})};
 		}
 
-		function createContracts({ui,profile,extra,upload}) {
-		    const profileMetadata={
-		        profileStatus:{sourceOwner:"394816",adapter:"function"},profileSection:{sourceOwner:"900179",adapter:"props"},
-		        profileBannerType:{sourceOwner:"915614",adapter:"props"},profileBannerFill:{sourceOwner:"915614",adapter:"function"},
-		        profileAvatar:{sourceOwner:"718019",adapter:"function"}
-		    };
-		    // Build source contracts from the same callbacks, without invoking their
-		    // native helpers/hooks. These dummy helpers are never used for rendering.
-		    const probe=profile.createHandlers({React:{},mark:()=>{},mapTree:()=>{},classFor:()=>"",isActive:()=>false,
-		        isPremiumTier2:()=>false,readProfileTheme:()=>null});
-		    const result=ui.CONTRACTS.filter(c=>!["modalStack","modalScrim"].includes(c.name));
-		    for(const [name,meta]of Object.entries(profileMetadata))result.push({name,...meta,strings:probe[name].matchStrings});
-		    result.push(...extra.CONTRACTS.filter(c=>!["menuAccessory","unreadBar"].includes(c.name)),upload.CONTRACT);
-		    return result;
+		function createContracts({ui,extra}) {
+		    return [...ui.CONTRACTS, ...extra.CONTRACTS.filter(c=>!["menuAccessory","unreadBar"].includes(c.name))];
 		}
 		return {createBindings,createContracts};
 	})();
@@ -10225,30 +9606,25 @@ module.exports = (_ => {
                     if (!bridge) {
                         let controller;
                         const React = LibraryModules.React;
-                        const classFor = alias => BDFDBCompatTokens[alias];
-                        const backdrop = BDFDBCompatBackdrop.createBackdropRule({React, classFor, isActive: () => controller && controller.isActive()});
                         const inspector = BDFDBCompatInspector.createCommittedInspector({document});
-                        const ownedTokens = [...new Set(Object.values(BDFDBCompatTokens).filter(token => token.startsWith("bdfdb-compat-") && token !== classFor("backdropwithlayer")))];
+                        const ownedTokens = [...new Set(Object.values(BDFDBCompatTokens).filter(token => token.startsWith("bdfdb-compat-")))];
                         const hosts = BDFDBCompatHosts.createHostMarkers({React, ownedTokens, isActive: () => controller && controller.isActive()});
-                        const contracts = BDFDBCompatBindings.createContracts({ui:BDFDBCompatUI, profile:BDFDBCompatProfile, extra:BDFDBCompatExtra, upload:BDFDBCompatUpload});
+                        const contracts = BDFDBCompatBindings.createContracts({ui:BDFDBCompatUI, extra:BDFDBCompatExtra});
                         controller = BDFDBCompatController.createClassCompatibility({Patcher:BdApi.Patcher, React, contracts,
-                            inspectCommitted:inspector.inspect, hostMarkers:hosts, hostProjections:[backdrop],
+                            inspectCommitted:inspector.inspect, hostMarkers:hosts,
                             hashSource:source => require("crypto").createHash("sha256").update(source).digest("hex")});
                         bridge = BDFDBCompatBridge.createRendererBridge({Patcher:BdApi.Patcher, controller, targets:compatibilityTargets});
-                        bridge.runtime = {backdrop,inspector};
+                        bridge.runtime = {inspector};
                         window[compatibilitySlot] = bridge;
                     }
                     Internal.compatibilityGeneration = bridge.bindLegacy({legacy:createElementPatches,targets:compatibilityTargets});
-                    const {backdrop,inspector} = bridge.runtime;
-                    const scrimClass = BDFDB.disCN.backdrop, layerClass = BDFDB.disCN.itemlayercontainer;
-                    if (!scrimClass || !layerClass || /BDFDB_undefined/.test(scrimClass + layerClass)) throw Error("Current native backdrop/layer classes are unavailable");
-                    backdrop.bind({scrimClass,layerClass});
+                    const {inspector} = bridge.runtime;
                     const compatibility = BDFDBCompatBindings.createBindings({BDFDB, React:LibraryModules.React, controller:bridge.controller,
-                        document, ui:BDFDBCompatUI, profile:BDFDBCompatProfile, extra:BDFDBCompatExtra, upload:BDFDBCompatUpload, classTokens:BDFDBCompatTokens});
+                        document, ui:BDFDBCompatUI, extra:BDFDBCompatExtra, classTokens:BDFDBCompatTokens});
                     bridge.activateCompatibility(Internal.compatibilityGeneration,compatibility);
                     if (!compatibilityFrameActive) bridge.stop(Internal.compatibilityGeneration);
                     BDFDB.ClassCompatibility = {getStatus: () => Object.assign({}, bridge.controller.getStatus(),
-                        {backdrop:backdrop.getStatus(),bridge:bridge.getStatus(),inspector:inspector.getStatus()})};
+                        {bridge:bridge.getStatus(),inspector:inspector.getStatus()})};
                 }
                 catch (error) {
                     BDFDB.LogUtils.error(["Class compatibility initialization failed",error]);
